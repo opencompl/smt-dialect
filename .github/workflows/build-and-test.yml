@@ -3,7 +3,7 @@ name: Build and test
 on: [push, pull_request]
 
 env:
-  LLVM_COMMIT: b989662eb000efb54b91b8c82d2b2713e2da20fc
+  LLVM_COMMIT: f4726e72386d4107f427f3b4825bdfb92d0d1a1e
   CMAKE_FLAGS: '-DCMAKE_LINKER=lld -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DMLIR_DIR=$GITHUB_WORKSPACE/llvm-project/prefix/lib/cmake/mlir/ -DLLVM_DIR=$GITHUB_WORKSPACE/llvm-project/prefix/lib/cmake/llvm/ -DLLVM_EXTERNAL_LIT=$GITHUB_WORKSPACE/llvm-project/build/bin/llvm-lit'
 
 jobs:
@@ -56,11 +56,4 @@ jobs:
           mkdir $GITHUB_WORKSPACE/mlir-standalone-template/sanitizer-build
           cd $GITHUB_WORKSPACE/mlir-standalone-template/sanitizer-build
           cmake $GITHUB_WORKSPACE/mlir-standalone-template -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER='Address;Undefined' ${{ env.CMAKE_FLAGS }}
-          cmake --build . --target check-standalone-opt -- -j$(nproc)
-      - name: Release build
-        run: |
-          mkdir $GITHUB_WORKSPACE/mlir-standalone-template/build
-          cd $GITHUB_WORKSPACE/mlir-standalone-template/build
-          cmake $GITHUB_WORKSPACE/mlir-standalone-template -DCMAKE_BUILD_TYPE=Release ${{ env.CMAKE_FLAGS }}
-          cmake --build . --target check-standalone-opt -- -j$(nproc)
-
+          cmake --build . --target check-smt-opt -- -j$(nproc)
