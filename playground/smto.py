@@ -35,19 +35,19 @@ def consistent(thetai, Ii, rho, model):
                 # current constraint
                 concrete_app = thetai(*arg_vals_in_model)
                 alpha_new = concrete_app == oracle_val
+                alpha_total = And(alpha_total, alpha_new)
                 # print("oracle_val: %s | appval: %s ~= %s | not-equal? %s" % (oracle_val, model_app_val, z3_to_py(model_app_val), oracle_val != z3_to_py(model_app_val)))
                 if oracle_val != z3_to_py(model_app_val):
+
                     # TODO: consider And(alpha_total, alpha_new)
                     # print("early returning")
                     return False, alpha_new
-                alpha_total = And(alpha_total, alpha_new)
                 # alphacur = 
                 # print("app: %s | modelval: %s(%s) = %s | oracleval: %s " % (app, appval , arg_vals_in_model, model_val, oracle_val))
         is_consistent, alpha_new = consistent(thetai, Ii, app, model)
+        alpha_total = And(alpha_total, alpha_new)
         if not is_consistent:
-            return is_consistent, alpha_new
-        else:
-            alpha_total = And(alpha_total, alpha_new)
+            return False, alpha_new
     return True, alpha_total
 
     # for app in rho:
@@ -80,7 +80,7 @@ def check(xs, thetas, rho, Is):
 def isPrime(x):
     if x < 2: return False
     if x == 2: return True
-    for d in range(3, x//2 + 1):
+    for d in range(2, x//2 + 1):
         if x % d == 0:
             return False
     return True
@@ -104,3 +104,9 @@ print("success: %s\nout:%s" % (success, out))
 # m = s.model()
 # print("out: %s | model: %s" % (out, m))
 # 
+
+
+queryFalse = And(x * y * z == 100, isPrimeU(x) == True, isPrimeU(y) == True, isPrimeU(z) == True) 
+success, out = check([x, y, z], [isPrimeU], queryFalse, [isPrime])
+print("****OUTPUT TWO****\n")
+print("success: %s\nout:%s" % (success, out))
