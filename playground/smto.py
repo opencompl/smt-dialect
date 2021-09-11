@@ -91,8 +91,8 @@ y = Int('y')
 z = Int('z')
 query = And(x * y * z == 76, isPrimeU(x) == True, isPrimeU(y) == True, isPrimeU(z) == True) 
 
-success, out = check([x, y, z], [isPrimeU], query, [isPrime])
 print("****OUTPUT****\n")
+success, out = check([x, y, z], [isPrimeU], query, [isPrime])
 print("success: %s\nout:%s" % (success, out))
 
 # expr = isPrimeU(x)
@@ -106,7 +106,15 @@ print("success: %s\nout:%s" % (success, out))
 # 
 
 
+print("****OUTPUT TWO****\n")
+
 queryFalse = And(x * y * z == 100, isPrimeU(x) == True, isPrimeU(y) == True, isPrimeU(z) == True) 
 success, out = check([x, y, z], [isPrimeU], queryFalse, [isPrime])
-print("****OUTPUT TWO****\n")
+print("success: %s\nout:%s" % (success, out))
+
+
+
+print("****OUTPUT THREE****\n")
+queryPositive = And(x * y * z == 385, x >= 2, y >= 2, z >= 2, isPrimeU(x) == True, isPrimeU(y) == True, isPrimeU(z) == True) 
+success, out = check([x, y, z], [isPrimeU], queryPositive, [isPrime])
 print("success: %s\nout:%s" % (success, out))
