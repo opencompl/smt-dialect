@@ -6,5 +6,5 @@ FROM mcr.microsoft.com/vscode/devcontainers/cpp:0-${VARIANT}
 
 # [Optional] Uncomment this section to install additional packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends z3 python3-pip python3
+    && apt-get -y install --no-install-recommends z3 python3-pip python3 python3-setuptools
 RUN pip3 install z3 z3-solve
