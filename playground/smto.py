@@ -10,11 +10,6 @@ def smt(e):
     s.add([e])
     return s
 
-def get_model(): 
-    return None
-
-def call_oracle(Ii, inputs): pass
-
 # https://stackoverflow.com/a/12600208/5305365 
 def z3_to_py(v):
     if is_bool(v):
