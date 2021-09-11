@@ -1,9 +1,12 @@
 *.log
-build/
 .clangd/
 .vscode/
 .idea/
-cmake-build-debug/
-cmake-build-release/
+
+build*
+cmake-build-*
 
 compile_commands.json
+
+tmp/
+setup-local-env.sh
