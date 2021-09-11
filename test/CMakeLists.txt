@@ -1,3 +1,4 @@
+if (MAIN_PROJECT)
 configure_lit_site_cfg(
         ${CMAKE_CURRENT_SOURCE_DIR}/lit.site.cfg.py.in
         ${CMAKE_CURRENT_BINARY_DIR}/lit.site.cfg.py
@@ -17,3 +18,4 @@ add_lit_testsuite(check-smt-opt "Running the smt-opt regression tests"
 set_target_properties(check-smt-opt PROPERTIES FOLDER "Tests")
 
 add_lit_testsuites(SMT_OPT ${CMAKE_CURRENT_SOURCE_DIR} DEPENDS ${SMT_OPT_TEST_DEPENDS})
+endif()
