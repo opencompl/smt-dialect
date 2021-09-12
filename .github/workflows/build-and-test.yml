@@ -57,3 +57,9 @@ jobs:
           cd $GITHUB_WORKSPACE/mlir-standalone-template/sanitizer-build
           cmake $GITHUB_WORKSPACE/mlir-standalone-template -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER='Address;Undefined' ${{ env.CMAKE_FLAGS }}
           cmake --build . --target check-smt-opt -- -j$(nproc)
+      - name: Release Build with shared libs
+        run: |
+          mkdir $GITHUB_WORKSPACE/mlir-standalone-template/release-build
+          cd $GITHUB_WORKSPACE/mlir-standalone-template/release-build
+          cmake $GITHUB_WORKSPACE/mlir-standalone-template -DCMAKE_BUILD_TYPE=Release ${{ env.CMAKE_FLAGS }} -DBUILD_SHARED_LIBS=ON
+          cmake --build . --target check-smt-opt -- -j$(nproc)
