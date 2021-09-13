@@ -19,7 +19,7 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 
-#include "SMT/SMTDialect.h"
+#include "SMT/SMTOps.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();

@@ -1,4 +1,3 @@
-#include "SMT/SMTDialect.h"
 #include "SMT/SMTOps.h"
 
 using namespace mlir;
@@ -14,3 +13,5 @@ void SMTDialect::initialize() {
 #include "SMT/SMTOps.cpp.inc"
       >();
 }
+
+#include "SMT/SMTOpsDialect.cpp.inc"

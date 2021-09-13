@@ -15,4 +15,6 @@
 #define GET_OP_CLASSES
 #include "SMT/SMTOps.h.inc"
 
+#include "SMT/SMTOpsDialect.h.inc"
+
 #endif // SMT_SMTOPS_H
