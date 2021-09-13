@@ -20,20 +20,14 @@
 #include "llvm/Support/ToolOutputFile.h"
 
 #include "SMT/SMTDialect.h"
-#include "SMT/SMTOpsDialect.cpp.inc"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
-  // TODO: Register smt passes here.
 
   mlir::DialectRegistry registry;
+  registerAllDialects(registry);
   registry.insert<mlir::smt::SMTDialect>();
-  registry.insert<mlir::StandardOpsDialect>();
-  // Add the following to include *all* MLIR Core dialects, or selectively
-  // include what you need like above. You only need to register dialects that
-  // will be *parsed* by the tool, not the one generated
-  // registerAllDialects(registry);
 
   return mlir::asMainReturnCode(
-      mlir::MlirOptMain(argc, argv, "SMT optimizer driver\n", registry));
+      mlir::MlirOptMain(argc, argv, "MLIR-SMT optimizer driver\n", registry));
 }
