@@ -71,9 +71,12 @@ LogicalResult ForallOp::serializeExpression(std::string &expr,
   llvm::interleave(
       body().getArguments(),
       [&](BlockArgument arg) {
-        os << "(" << arg << " " << arg.getType() << ")";
+        os << "(arg" << arg.getArgNumber() << " " << arg.getType() << ")";
       },
       [&]() { os << " "; });
+  os << ") (";
+  if (failed(ctx.serializeExpression(getYield().getOperand(0), expr)))
+    return failure();
   os << ")";
   return success();
 }

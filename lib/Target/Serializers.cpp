@@ -66,6 +66,28 @@ LogicalResult serializeExpression(CmpIOp op, std::string &expr,
   }
 }
 
+template <typename Op>
+LogicalResult serializeBinOp(const char *opSym, Op op, std::string &expr,
+                             SMTContext &ctx) {
+  expr += "(" + std::string(opSym) + " ";
+  if (failed(ctx.serializeExpression(op.lhs(), expr)))
+    return failure();
+  expr += " ";
+  if (failed(ctx.serializeExpression(op.rhs(), expr)))
+    return failure();
+  expr += ")";
+  return success();
+}
+
+LogicalResult serializeExpression(AddIOp op, std::string &expr,
+                                  SMTContext &ctx) {
+  return serializeBinOp<AddIOp>("+", op, expr, ctx);
+}
+LogicalResult serializeExpression(MulIOp op, std::string &expr,
+                                  SMTContext &ctx) {
+  return serializeBinOp<MulIOp>("*", op, expr, ctx);
+}
+
 //==== Expression Serializer Execution =======================================//
 template <typename Op>
 LogicalResult serializeExpression(Operation *op, std::string &expr,
@@ -89,6 +111,13 @@ LogicalResult serializeExpression(Operation *op, std::string &expr,
 } // namespace
 
 LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
+  // Value is block argument, generate the name and return.
+  // NOTE: block arguments do not have a defining op.
+  if (auto blockArg = value.dyn_cast<BlockArgument>()) {
+    expr += "arg" + std::to_string(blockArg.getArgNumber());
+    return success();
+  }
+
   Operation *parentOp = value.getDefiningOp();
 
   // If it has a serializer interface defined, use it directly.
@@ -103,7 +132,9 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
   return ::serializeExpression<
       // clang-format off
       ConstantIntOp,
-      CmpIOp
+      CmpIOp,
+      AddIOp,
+      MulIOp
       // clang-format on
       >(parentOp, expr, *this);
 }
