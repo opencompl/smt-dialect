@@ -3,20 +3,20 @@
 
 include "mlir/IR/OpBase.td"
 
-def SMTTranslateOpInterface : OpInterface<"SMTTranslateOpInterface"> {
-  let description = [{
-    Translate the MLIR Op to an SMT2 Expression.
-  }];
-
-  let methods = [
-    InterfaceMethod<
-      /*desc=*/"Prints the SMT Expression to output stream",
-      /*retTy=*/"LogicalResult",
-      /*methodName=*/"translateToSMT",
-      /*args=*/(ins "raw_ostream&":$output),
-      /*methodBody*/[{}]
-    >
-  ];
-}
+// def SMTTranslateOpInterface : OpInterface<"SMTTranslateOpInterface"> {
+//   let description = [{
+//     Translate the MLIR Op to an SMT2 Expression.
+//   }];
+// 
+//   let methods = [
+//     InterfaceMethod<
+//       /*desc=*/"Prints the SMT Expression to output stream",
+//       /*retTy=*/"LogicalResult",
+//       /*methodName=*/"translateToSMT",
+//       /*args=*/(ins "raw_ostream&":$output),
+//       /*methodBody*/[{}]
+//     >
+//   ];
+// }
 
 #endif // SMTOPINTERFACES
