@@ -25,7 +25,7 @@ def SMT_Dialect : Dialect {
 // SMT operation, which corresponds to an smt2 statement.
 class SMT_Op<string mnemonic, list<OpTrait> traits = []> :
   Op<SMT_Dialect, mnemonic,
-    !listconcat(traits, [DeclareOpInterfaceMethods<SMTTranslateOpInterface>])>;
+    !listconcat(traits, [])>;
 
 // generic support operation (may not be lowerable to smt2)
 // could be used to track information etc.
