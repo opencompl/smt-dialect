@@ -15,5 +15,5 @@ func @main() attributes {smt_main} {
   return
 }
 
-// CHECK: (assert (forall ((arg0 Int)) (= (+ arg0 (* arg02))))
+// CHECK: (assert (forall ((arg0 Int)) (= (+ arg0 arg0) (* arg0 2))))
 // CHECK: (check-sat)

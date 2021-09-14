@@ -89,6 +89,7 @@ LogicalResult serializeExpression(MulIOp op, std::string &expr,
 }
 
 //==== Expression Serializer Execution =======================================//
+
 template <typename Op>
 LogicalResult serializeExpression(Operation *op, std::string &expr,
                                   SMTContext &ctx) {
@@ -110,6 +111,19 @@ LogicalResult serializeExpression(Operation *op, std::string &expr,
 }
 } // namespace
 
+LogicalResult SMTContext::printGenericType(Type type, std::string &expr) {
+  if (auto intType = type.dyn_cast<IntegerType>()) {
+    // TODO: Add support for bitvectors
+    if (intType.getWidth() == 1) {
+      expr += "Bool";
+    } else {
+      expr += "Int";
+    }
+    return success();
+  }
+  return emitError(UnknownLoc(), "[mlir-to-smt] Unknown type found: ") << type;
+}
+
 LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
   // Value is block argument, generate the name and return.
   // NOTE: block arguments do not have a defining op.
@@ -127,7 +141,7 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
 
   // handle function calls separately.
   if (auto callOp = dyn_cast<CallOp>(parentOp)) {
-    return success();
+    return callOp.emitError("[mlir-to-smt] call op unsupported");
   }
   return ::serializeExpression<
       // clang-format off

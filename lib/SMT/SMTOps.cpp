@@ -68,13 +68,18 @@ LogicalResult ForallOp::serializeExpression(std::string &expr,
                                             smt::SMTContext &ctx) {
   llvm::raw_string_ostream os(expr);
   os << "(forall (";
-  llvm::interleave(
-      body().getArguments(),
-      [&](BlockArgument arg) {
-        os << "(arg" << arg.getArgNumber() << " " << arg.getType() << ")";
-      },
-      [&]() { os << " "; });
-  os << ") (";
+
+  bool first = true;
+  for (auto arg : body().getArguments()) {
+    if (!first)
+      os << " ";
+    first = false;
+    os << "(arg" << arg.getArgNumber() << " ";
+    if (failed(ctx.printGenericType(arg.getType(), expr)))
+      return failure();
+    os << ")";
+  }
+  os << ") ";
   if (failed(ctx.serializeExpression(getYield().getOperand(0), expr)))
     return failure();
   os << ")";
