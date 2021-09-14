@@ -10,7 +10,10 @@ namespace {
 
 //==== Operation Serializers ================================================//
 
-// Registering a serializer:
+// Registering a custom serializer:
+// *** Use this only if you cannot add the SMTSerializeOpInterface directly to
+// the Op ***
+//
 // Define the following function and register the operation in
 // SMTContext::serializeExpression (i.e. add to template list)
 // LogicalResult serializeExpression(MyOperation op, std::string &expr,
@@ -63,16 +66,16 @@ LogicalResult serializeExpression(CmpIOp op, std::string &expr,
   }
 }
 
-//==== Serializer Executor ================================================//
+//==== Expression Serializer Execution =======================================//
 template <typename Op>
 LogicalResult serializeExpression(Operation *op, std::string &expr,
                                   SMTContext &ctx) {
   if (auto opp = dyn_cast<Op>(op)) {
     return serializeExpression(opp, expr, ctx);
   }
-  op->emitError("[mlir-to-smt] cannot convert operation to SMT expression - no "
-                "registered serialization");
-  return failure();
+  return op->emitError(
+      "[mlir-to-smt] cannot convert operation to SMT expression - no "
+      "registered serialization");
 }
 
 template <typename Op, typename T, typename... Ts>
@@ -86,11 +89,40 @@ LogicalResult serializeExpression(Operation *op, std::string &expr,
 } // namespace
 
 LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
-  Operation *op = value.getDefiningOp();
+  Operation *parentOp = value.getDefiningOp();
+
+  // If it has a serializer interface defined, use it directly.
+  if (auto serializer = dyn_cast<SMTSerializableOpInterface>(parentOp)) {
+    return serializer.serializeExpression(expr, *this);
+  }
+
+  // handle function calls separately.
+  if (auto callOp = dyn_cast<CallOp>(parentOp)) {
+    return success();
+  }
   return ::serializeExpression<
       // clang-format off
       ConstantIntOp,
       CmpIOp
       // clang-format on
-      >(op, expr, *this);
+      >(parentOp, expr, *this);
+}
+
+LogicalResult SMTContext::serializeStatement(Operation *op, std::string &expr) {
+  // If it is not a valid SMT2 statement, just ignore it.
+  if (!op->hasTrait<OpTrait::SMTStatement>())
+    return success();
+
+  // If it has a serializer interface defined, use it directly.
+  if (auto serializer = dyn_cast<SMTSerializableOpInterface>(op)) {
+    return serializer.serializeExpression(expr, *this);
+  }
+
+  // add custom patterns below:
+  // return ::serializeExpression<
+  //     // clang-format off
+  //     // clang-format on
+  //     >(op, expr, *this);
+  return op->emitError("[mlir-to-smt] cannot convert operation to SMT "
+                       "expression - no registered serialization");
 }

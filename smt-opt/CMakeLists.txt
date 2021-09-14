@@ -5,6 +5,7 @@ set(LIBS
         ${conversion_libs}
         MLIROptLib
         MLIRSMT
+        MLIRToSMTTranslation
         )
 add_llvm_executable(smt-opt smt-opt.cpp)
 

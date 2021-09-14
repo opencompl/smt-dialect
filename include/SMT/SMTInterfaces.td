@@ -3,20 +3,21 @@
 
 include "mlir/IR/OpBase.td"
 
-// def SMTTranslateOpInterface : OpInterface<"SMTTranslateOpInterface"> {
-//   let description = [{
-//     Translate the MLIR Op to an SMT2 Expression.
-//   }];
-// 
-//   let methods = [
-//     InterfaceMethod<
-//       /*desc=*/"Prints the SMT Expression to output stream",
-//       /*retTy=*/"LogicalResult",
-//       /*methodName=*/"translateToSMT",
-//       /*args=*/(ins "raw_ostream&":$output),
-//       /*methodBody*/[{}]
-//     >
-//   ];
-// }
+def SMTSerializableOpInterface : OpInterface<"SMTSerializableOpInterface"> {
+  let description = [{
+    Can be serialized into an SMT2 expression, using an SMTContext to add
+    neccessary function definitions.
+  }];
+
+  let methods = [
+    InterfaceMethod<
+      /*desc=*/"Serializes into an SMT2 expression, and appends to the `expr` string",
+      /*retTy=*/"LogicalResult",
+      /*methodName=*/"serializeExpression",
+      /*args=*/(ins "std::string&":$expr, "smt::SMTContext&":$ctx),
+      /*methodBody*/[{}]
+    >
+  ];
+}
 
 #endif // SMTOPINTERFACES

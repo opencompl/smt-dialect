@@ -16,6 +16,15 @@
 
 #include "SMTInterfaces.h"
 
+namespace mlir {
+namespace OpTrait {
+
+template <typename ConcreteType>
+class SMTStatement : public TraitBase<ConcreteType, SMTStatement> {};
+
+} // namespace OpTrait
+} // namespace mlir
+
 #define GET_OP_CLASSES
 #include "SMT/SMTOps.h.inc"
 

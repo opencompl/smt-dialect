@@ -20,13 +20,20 @@ def SMT_Dialect : Dialect {
 }
 
 //===----------------------------------------------------------------------===//
+// Types and Traits 
+//===----------------------------------------------------------------------===//
+
+def SMTStatement : NativeOpTrait<"SMTStatement">;
+
+//===----------------------------------------------------------------------===//
 // Base SMT operation definition.
 //===----------------------------------------------------------------------===//
+
 
 // SMT operation, which corresponds to an smt2 statement.
 class SMT_Op<string mnemonic, list<OpTrait> traits = []> :
   Op<SMT_Dialect, mnemonic,
-    !listconcat(traits, [])> {
+    !listconcat(traits, [DeclareOpInterfaceMethods<SMTSerializableOpInterface>])> {
   let parser = "return ::parse$cppClass(parser, result);";
   let printer = "return ::print(p, *this);";
   let verifier = "return ::verify(*this);";
@@ -58,12 +65,15 @@ def SMT_ForallOp : SMT_Op<"forall", [SingleBlockImplicitTerminator<"YieldOp">]> 
 
   let regions = (region SizedRegion<1>:$body);
   let results = (outs I1:$cond);
+  let verifier = ?;
+
+  let extraClassDeclaration = [{
+    YieldOp getYield();
+  }];
 }
 
-def SMT_YieldOp : SMT_Op<"yield", [Terminator, ReturnLike,
-                                   ParentOneOf<["ForallOp"]>,
-                                   NoSideEffect]> {
-  let summary = "Return a single value to the parent operation";
+def SMT_YieldOp : SMT_SupportOp<"yield", [Terminator, ReturnLike, ParentOneOf<["ForallOp"]>]> {
+  let summary = "Return a value to the parent operation";
   let description = [{
     smt.yield %a, %b : i1, i32
   }];
@@ -73,7 +83,7 @@ def SMT_YieldOp : SMT_Op<"yield", [Terminator, ReturnLike,
   let verifier = ?;
 }
 
-def SMT_AssertOp : SMT_Op<"assert", []> {
+def SMT_AssertOp : SMT_Op<"assert", [SMTStatement]> {
   let summary = "(assert <<expr>>)";
   let description = [{
     %b = constant 0 : i1
@@ -86,7 +96,7 @@ def SMT_AssertOp : SMT_Op<"assert", []> {
   let verifier = ?;
 }
 
-def SMT_CheckSatOp : SMT_Op<"check_sat", []> {
+def SMT_CheckSatOp : SMT_Op<"check_sat", [SMTStatement]> {
   let summary = "(check-sat)";
   let description = [{
     smt.check_sat
@@ -96,7 +106,7 @@ def SMT_CheckSatOp : SMT_Op<"check_sat", []> {
   let verifier = ?;
 }
 
-def SMT_GetModelOp : SMT_Op<"get_model", []> {
+def SMT_GetModelOp : SMT_Op<"get_model", [SMTStatement]> {
   let summary = "(get-model)";
   let description = [{
     smt.get_model

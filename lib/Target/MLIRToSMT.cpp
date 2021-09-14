@@ -14,26 +14,6 @@ using namespace smt;
 
 namespace {
 
-//===== SMT Operation Converters =============================================//
-LogicalResult serializeSMTStatement(CheckSatOp op, std::string &expr,
-                                    SMTContext &ctx) {
-  expr = "(check-sat)";
-  return success();
-}
-LogicalResult serializeSMTStatement(GetModelOp op, std::string &expr,
-                                    SMTContext &ctx) {
-  expr = "(get-model)";
-  return success();
-}
-LogicalResult serializeSMTStatement(smt::AssertOp op, std::string &expr,
-                                    SMTContext &ctx) {
-  expr = "(assert ";
-  if (failed(ctx.serializeExpression(op.cond(), expr)))
-    return failure();
-  expr += ")";
-  return success();
-}
-
 //===== MLIR To SMT Translation Module =======================================//
 class SMTTranslation {
   FuncOp getSMTMain(ModuleOp module) {
@@ -57,21 +37,6 @@ class SMTTranslation {
     return mainFunc;
   }
 
-  template <typename Op>
-  LogicalResult serialize(Operation *op, std::string &expr, SMTContext &ctx) {
-    if (auto opp = dyn_cast<Op>(op)) {
-      return serializeSMTStatement(opp, expr, ctx);
-    }
-    return success();
-  }
-  template <typename Op, typename T, typename... Ts>
-  LogicalResult serialize(Operation *op, std::string &expr, SMTContext &ctx) {
-    if (auto opp = dyn_cast<Op>(op)) {
-      return serializeSMTStatement(opp, expr, ctx);
-    }
-    return serialize<T, Ts...>(op, expr, ctx);
-  }
-
 public:
   SMTTranslation(raw_ostream &output) : output(output) {}
   LogicalResult translateToSMT(ModuleOp module) {
@@ -81,8 +46,7 @@ public:
     SMTContext smtContext(module, *module->getContext());
     auto walkResult = module.walk([&](Operation *op) {
       std::string expr;
-      if (failed(serialize<CheckSatOp, GetModelOp, smt::AssertOp>(
-              op, expr, smtContext))) {
+      if (failed(smtContext.serializeStatement(op, expr))) {
         return WalkResult::interrupt();
       }
       if (!expr.empty())

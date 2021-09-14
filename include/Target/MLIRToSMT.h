@@ -21,6 +21,9 @@ public:
   // Add a (define-fun), if the symbol does not already exist.
   LogicalResult addFuncDef(FlatSymbolRefAttr);
 
+  // Serialize an SMT dialect op into an SMT statement
+  LogicalResult serializeStatement(Operation *op, std::string &expr);
+
   // Serialize a `value` into an SMT expression and append to `expr`
   LogicalResult serializeExpression(Value value, std::string &expr);
 };

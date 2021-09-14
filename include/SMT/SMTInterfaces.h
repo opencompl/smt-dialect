@@ -5,6 +5,11 @@
 #include "mlir/IR/OpDefinition.h"
 
 namespace mlir {
+
+namespace smt {
+class SMTContext;
+}
+
 #include "SMT/SMTInterfaces.h.inc"
 } // namespace mlir
 

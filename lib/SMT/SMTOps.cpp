@@ -2,8 +2,10 @@
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/PatternMatch.h"
 #include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "SMT/SMTOps.h"
+#include "Target/MLIRToSMT.h"
 
 using namespace mlir;
 using namespace smt;
@@ -51,9 +53,47 @@ static void print(OpAsmPrinter &printer, ForallOp op) {
   printer.printRegion(op.body());
 }
 
-static LogicalResult verify(ForallOp op) { return success(); }
-
 } // namespace
 
 #define GET_OP_CLASSES
 #include "SMT/SMTOps.cpp.inc"
+
+YieldOp ForallOp::getYield() {
+  return cast<YieldOp>(body().getBlocks().front().getTerminator());
+}
+
+//=== Serialize Expression Interface Methods =================================//
+
+LogicalResult ForallOp::serializeExpression(std::string &expr,
+                                            smt::SMTContext &ctx) {
+  llvm::raw_string_ostream os(expr);
+  os << "(forall (";
+  llvm::interleave(
+      body().getArguments(),
+      [&](BlockArgument arg) {
+        os << "(" << arg << " " << arg.getType() << ")";
+      },
+      [&]() { os << " "; });
+  os << ")";
+  return success();
+}
+
+LogicalResult AssertOp::serializeExpression(std::string &expr,
+                                            smt::SMTContext &ctx) {
+  expr += "(assert ";
+  if (failed(ctx.serializeExpression(cond(), expr)))
+    return failure();
+  expr += ")";
+  return success();
+}
+
+LogicalResult CheckSatOp::serializeExpression(std::string &expr,
+                                              smt::SMTContext &ctx) {
+  expr += "(check-sat)";
+  return success();
+}
+LogicalResult GetModelOp::serializeExpression(std::string &expr,
+                                              smt::SMTContext &ctx) {
+  expr += "(get-model)";
+  return success();
+}
