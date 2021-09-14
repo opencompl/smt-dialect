@@ -14,10 +14,7 @@ def SMTTranslateOpInterface : OpInterface<"SMTTranslateOpInterface"> {
       /*retTy=*/"LogicalResult",
       /*methodName=*/"translateToSMT",
       /*args=*/(ins "raw_ostream&":$output),
-      /*methodBody*/[{}],
-      /*defaultImplementation=*/ [{
-        return this->emitWarning("Skipping operation, translation to SMT Expression not provided.");
-      }]
+      /*methodBody*/[{}]
     >
   ];
 }

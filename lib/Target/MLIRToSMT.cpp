@@ -41,6 +41,11 @@ public:
     if (!(mainFunc = getSMTMain(module)))
       return failure();
     output << ";;; Translating MLIR to SMTLib code...\n";
+    module.walk([&](Operation *op) {
+      if (auto translateInterface = dyn_cast<SMTTranslateOpInterface>(op)) {
+        translateInterface.translateToSMT(output);
+      }
+    });
     return success();
   }
 
