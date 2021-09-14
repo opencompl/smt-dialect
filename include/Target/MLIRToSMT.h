@@ -17,7 +17,12 @@ class SMTContext {
 public:
   SMTContext(ModuleOp module, MLIRContext &ctx)
       : module(module), ctx(ctx), funcDefs() {}
+
+  // Add a (define-fun), if the symbol does not already exist.
   LogicalResult addFuncDef(FlatSymbolRefAttr);
+
+  // Serialize a `value` into an SMT expression and append to `expr`
+  LogicalResult serializeExpression(Value value, std::string &expr);
 };
 
 } // namespace smt

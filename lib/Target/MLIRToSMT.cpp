@@ -27,7 +27,10 @@ LogicalResult serializeSMTStatement(GetModelOp op, std::string &expr,
 }
 LogicalResult serializeSMTStatement(smt::AssertOp op, std::string &expr,
                                     SMTContext &ctx) {
-  expr = "(assert _)";
+  expr = "(assert ";
+  if (failed(ctx.serializeExpression(op.cond(), expr)))
+    return failure();
+  expr += ")";
   return success();
 }
 
@@ -39,33 +42,34 @@ class SMTTranslation {
     for (auto func : funcOps) {
       if (func->hasAttr("smt_main")) {
         if (mainFunc) {
-          func->emitWarning("Ignoring redefinition of `smt_main` function " +
-                            func.sym_name());
+          func->emitWarning(
+              "[mlir-to-smt] Ignoring redefinition of `smt_main` function " +
+              func.sym_name());
         } else {
           mainFunc = func;
         }
       }
     }
     if (!mainFunc) {
-      module->emitError(
-          "Missing main function - no function with attribute `smt_main`");
+      module->emitError("[mlir-to-smt] Missing main function - no function "
+                        "with attribute `smt_main`");
     }
     return mainFunc;
   }
 
-  template <typename T>
+  template <typename Op>
   LogicalResult serialize(Operation *op, std::string &expr, SMTContext &ctx) {
-    if (auto opp = dyn_cast<T>(op)) {
+    if (auto opp = dyn_cast<Op>(op)) {
       return serializeSMTStatement(opp, expr, ctx);
     }
     return success();
   }
-  template <typename T, typename V, typename... Ts>
+  template <typename Op, typename T, typename... Ts>
   LogicalResult serialize(Operation *op, std::string &expr, SMTContext &ctx) {
-    if (auto opp = dyn_cast<T>(op)) {
+    if (auto opp = dyn_cast<Op>(op)) {
       return serializeSMTStatement(opp, expr, ctx);
     }
-    return serialize<V, Ts...>(op, expr, ctx);
+    return serialize<T, Ts...>(op, expr, ctx);
   }
 
 public:
@@ -74,7 +78,6 @@ public:
     FuncOp mainFunc;
     if (!(mainFunc = getSMTMain(module)))
       return failure();
-    output << ";;; Translating MLIR to SMTLib code...\n";
     SMTContext smtContext(module, *module->getContext());
     auto walkResult = module.walk([&](Operation *op) {
       std::string expr;
