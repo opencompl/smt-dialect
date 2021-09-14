@@ -5,10 +5,11 @@
 func @main() attributes {smt_main} {
   %x = constant 42 : i32
   %y = constant 0 : i32
-  %e = cmpi "neq", %x, %y : i32
+  %e = cmpi "ne", %x, %y : i32
   smt.assert %e
   smt.check_sat
   smt.get_model
+  return
 }
 
 // CHECK: (assert (not (= 42 0)))

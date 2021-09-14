@@ -9,15 +9,39 @@
 #include "SMT/SMTOps.h"
 
 using namespace mlir;
+using namespace smt;
 
 namespace {
 
 class SMTTranslation {
+  FuncOp getSMTMain(ModuleOp module) {
+    auto funcOps = module.getRegion().getOps<FuncOp>();
+    FuncOp mainFunc = nullptr;
+    for (auto func : funcOps) {
+      if (func->hasAttr("smt_main")) {
+        if (mainFunc) {
+          func->emitWarning("Ignoring redefinition of `smt_main` function " +
+                            func.sym_name());
+        } else {
+          mainFunc = func;
+        }
+      }
+    }
+    if (!mainFunc) {
+      module->emitError(
+          "Missing main function - no function with attribute `smt_main`");
+    }
+    return mainFunc;
+  }
+
 public:
   SMTTranslation(raw_ostream &output) : output(output) {}
   LogicalResult translateToSMT(ModuleOp module) {
-    output << "> Translating MLIR to SMTLib code...\n";
-    return mlir::success();
+    FuncOp mainFunc;
+    if (!(mainFunc = getSMTMain(module)))
+      return failure();
+    output << ";;; Translating MLIR to SMTLib code...\n";
+    return success();
   }
 
 private:
