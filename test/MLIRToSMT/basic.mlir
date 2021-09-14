@@ -12,6 +12,6 @@ func @main() attributes {smt_main} {
   return
 }
 
-// CHECK: (assert (not (= 42 0)))
+// CHECK: (assert (> 42 0))
 // CHECK: (check-sat)
 // CHECK: (get-model)
