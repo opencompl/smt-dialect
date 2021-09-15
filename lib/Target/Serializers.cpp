@@ -111,6 +111,61 @@ LogicalResult serializeExpression(Operation *op, std::string &expr,
 }
 } // namespace
 
+//==== SMTContext ===========================================================//
+LogicalResult SMTContext::addFuncDef(StringRef funcName,
+                                     FunctionType funcType) {
+  if (funcDefs.find(funcName.str()) != funcDefs.end())
+    return success();
+  if (FuncOp func = dyn_cast<FuncOp>(module.lookupSymbol(funcName))) {
+    if (func.getType().getNumResults() != 1) {
+      return func.emitError("[mlir-to-smt] only functions with a single return "
+                            "value are supported.");
+    }
+    std::string &def = funcDefs[funcName.str()];
+    if (func.isDeclaration())
+      def = "(declare-fun ";
+    else
+      def = "(define-fun ";
+    def += funcName;
+
+    // argument list
+    def += " (";
+    for (auto param : llvm::enumerate(func.getType().getInputs())) {
+      def += "(arg";
+      def += std::to_string(param.index());
+      def += " ";
+      if (failed(printGenericType(param.value(), def)))
+        return failure();
+      def += ")";
+    }
+    def += ") ";
+
+    // return type
+    if (failed(printGenericType(func.getType().getResult(0), def)))
+      return failure();
+
+    if (!func.isDeclaration()) {
+      // generate the body
+      def += " ";
+      auto &blocks = func.getRegion().getBlocks();
+      if (blocks.size() != 1) {
+        return func->emitError(
+            "[mlir-to-smt] Only functions with a single block supported.");
+      }
+      if (failed(serializeExpression(
+              cast<ReturnOp>(blocks.front().getTerminator()).getOperand(0),
+              def)))
+        return failure();
+    }
+
+    def += ")";
+
+    primaryOS << funcDefs[funcName.str()] << '\n';
+    return success();
+  }
+  return failure();
+}
+
 LogicalResult SMTContext::printGenericType(Type type, std::string &expr) {
   if (auto intType = type.dyn_cast<IntegerType>()) {
     // TODO: Add support for bitvectors
@@ -141,8 +196,18 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
 
   // handle function calls separately.
   if (auto callOp = dyn_cast<CallOp>(parentOp)) {
-    return callOp.emitError("[mlir-to-smt] call op unsupported");
+    if (failed(this->addFuncDef(callOp.getCallee(), callOp.getCalleeType())))
+      return failure();
+    expr += "(";
+    expr += callOp.getCallee();
+    expr += " ";
+    if (failed(serializeArguments(callOp.getArgOperands(), expr)))
+      return failure();
+    expr += ")";
+    return success();
   }
+
+  // Run custom serializers
   return ::serializeExpression<
       // clang-format off
       ConstantIntOp,
@@ -151,6 +216,19 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
       MulIOp
       // clang-format on
       >(parentOp, expr, *this);
+}
+
+LogicalResult SMTContext::serializeArguments(ValueRange valueRange,
+                                             std::string &expr) {
+  bool first = true;
+  for (auto val : valueRange) {
+    if (!first)
+      expr += " ";
+    first = false;
+    if (failed(serializeExpression(val, expr)))
+      return failure();
+  }
+  return success();
 }
 
 LogicalResult SMTContext::serializeStatement(Operation *op, std::string &expr) {

@@ -43,7 +43,7 @@ public:
     FuncOp mainFunc;
     if (!(mainFunc = getSMTMain(module)))
       return failure();
-    SMTContext smtContext(module, *module->getContext());
+    SMTContext smtContext(module,output, *module->getContext());
     auto walkResult = module.walk([&](Operation *op) {
       std::string expr;
       if (failed(smtContext.serializeStatement(op, expr))) {

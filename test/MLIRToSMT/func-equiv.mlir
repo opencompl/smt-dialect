@@ -25,7 +25,7 @@ func @main() attributes {smt_main} {
   return
 }
 
-// CHECK: (define-fun add (Int) (arg0 Int) (+ arg0 arg0))
-// CHECK: (define-fun mul (Int) (arg0 Int) (* arg02))
+// CHECK: (define-fun add ((arg0 Int)) Int (+ arg0 arg0))
+// CHECK: (define-fun mul ((arg0 Int)) Int (* arg0 2))
 // CHECK: (assert (forall ((arg0 Int)) (= (add arg0) (mul arg0))))
 // CHECK: (check-sat)
