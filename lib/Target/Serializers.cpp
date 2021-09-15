@@ -16,85 +16,88 @@ namespace {
 //
 // Define the following function and register the operation in
 // SMTContext::serializeExpression (i.e. add to template list)
-// LogicalResult serializeExpression(MyOperation op, std::string &expr,
+// LogicalResult serializeExpression(MyOperation op, raw_ostream &os,
 //                                   SMTContext &ctx);
-// * Append the serialized expression to `expr`.
+// * Write the serialized expression to `os`.
 
-LogicalResult serializeExpression(ConstantIntOp op, std::string &expr,
+LogicalResult serializeExpression(ConstantIntOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
   unsigned width = op.getType().cast<IntegerType>().getWidth();
   int64_t value = op.getValue();
   if (width == 1) {
     // Boolean value
-    expr += value ? "true" : "false";
+    os << (value ? "true" : "false");
     return success();
   }
-  expr += std::to_string(value);
+  os << value;
   return success();
 }
-LogicalResult serializeExpression(CmpIOp op, std::string &expr,
+LogicalResult serializeExpression(CmpIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  std::string args;
-  if (failed(ctx.serializeExpression(op.lhs(), args)))
-    return failure();
-  args += " ";
-  if (failed(ctx.serializeExpression(op.rhs(), args)))
-    return failure();
   switch (op.getPredicate()) {
   case CmpIPredicate::eq:
-    expr += "(= " + args + ")";
-    return success();
+    os << "(= ";
+    break;
   case CmpIPredicate::ne:
-    expr += "(not (= " + args + "))";
-    return success();
+    os << "(not (= ";
+    break;
   case CmpIPredicate::sge:
   case CmpIPredicate::uge:
-    expr += "(>= " + args + ")";
-    return success();
+    os << "(>= ";
+    break;
   case CmpIPredicate::sgt:
   case CmpIPredicate::ugt:
-    expr += "(> " + args + ")";
-    return success();
+    os << "(> ";
+    break;
   case CmpIPredicate::sle:
   case CmpIPredicate::ule:
-    expr += "(<= " + args + ")";
-    return success();
+    os << "(<= ";
+    break;
   case CmpIPredicate::slt:
   case CmpIPredicate::ult:
-    expr += "(< " + args + ")";
-    return success();
+    os << "(< ";
+    break;
   }
+  if (failed(ctx.serializeExpression(op.lhs(), os)))
+    return failure();
+  os << " ";
+  if (failed(ctx.serializeExpression(op.rhs(), os)))
+    return failure();
+  os << ")";
+  if (op.getPredicate() == CmpIPredicate::ne)
+    os << ")";
+  return success();
 }
 
 template <typename Op>
-LogicalResult serializeBinOp(const char *opSym, Op op, std::string &expr,
+LogicalResult serializeBinOp(const char *opSym, Op op, llvm::raw_ostream &os,
                              SMTContext &ctx) {
-  expr += "(" + std::string(opSym) + " ";
-  if (failed(ctx.serializeExpression(op.lhs(), expr)))
+  os << "(" << opSym << " ";
+  if (failed(ctx.serializeExpression(op.lhs(), os)))
     return failure();
-  expr += " ";
-  if (failed(ctx.serializeExpression(op.rhs(), expr)))
+  os << " ";
+  if (failed(ctx.serializeExpression(op.rhs(), os)))
     return failure();
-  expr += ")";
+  os << ")";
   return success();
 }
 
-LogicalResult serializeExpression(AddIOp op, std::string &expr,
+LogicalResult serializeExpression(AddIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  return serializeBinOp<AddIOp>("+", op, expr, ctx);
+  return serializeBinOp<AddIOp>("+", op, os, ctx);
 }
-LogicalResult serializeExpression(MulIOp op, std::string &expr,
+LogicalResult serializeExpression(MulIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  return serializeBinOp<MulIOp>("*", op, expr, ctx);
+  return serializeBinOp<MulIOp>("*", op, os, ctx);
 }
 
 //==== Expression Serializer Execution =======================================//
 
 template <typename Op>
-LogicalResult serializeExpression(Operation *op, std::string &expr,
+LogicalResult serializeExpression(Operation *op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
   if (auto opp = dyn_cast<Op>(op)) {
-    return serializeExpression(opp, expr, ctx);
+    return serializeExpression(opp, os, ctx);
   }
   return op->emitError(
       "[mlir-to-smt] cannot convert operation to SMT expression - no "
@@ -102,12 +105,12 @@ LogicalResult serializeExpression(Operation *op, std::string &expr,
 }
 
 template <typename Op, typename T, typename... Ts>
-LogicalResult serializeExpression(Operation *op, std::string &expr,
+LogicalResult serializeExpression(Operation *op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
   if (auto opp = dyn_cast<Op>(op)) {
-    return serializeExpression(opp, expr, ctx);
+    return serializeExpression(opp, os, ctx);
   }
-  return serializeExpression<T, Ts...>(op, expr, ctx);
+  return serializeExpression<T, Ts...>(op, os, ctx);
 }
 } // namespace
 
@@ -121,32 +124,30 @@ LogicalResult SMTContext::addFuncDef(StringRef funcName,
       return func.emitError("[mlir-to-smt] only functions with a single return "
                             "value are supported.");
     }
-    std::string &def = funcDefs[funcName.str()];
+    llvm::raw_string_ostream def(funcDefs[funcName.str()]);
     if (func.isDeclaration())
-      def = "(declare-fun ";
+      def << "(declare-fun ";
     else
-      def = "(define-fun ";
-    def += funcName;
+      def << "(define-fun ";
+    def << funcName;
 
     // argument list
-    def += " (";
+    def << " (";
     for (auto param : llvm::enumerate(func.getType().getInputs())) {
-      def += "(arg";
-      def += std::to_string(param.index());
-      def += " ";
+      def << "(arg" << std::to_string(param.index()) << " ";
       if (failed(printGenericType(param.value(), def)))
         return failure();
-      def += ")";
+      def << ")";
     }
-    def += ") ";
+    def << ") ";
 
     // return type
     if (failed(printGenericType(func.getType().getResult(0), def)))
       return failure();
 
+    // generate the body
     if (!func.isDeclaration()) {
-      // generate the body
-      def += " ";
+      def << " ";
       auto &blocks = func.getRegion().getBlocks();
       if (blocks.size() != 1) {
         return func->emitError(
@@ -158,32 +159,33 @@ LogicalResult SMTContext::addFuncDef(StringRef funcName,
         return failure();
     }
 
-    def += ")";
+    def << ")";
 
-    primaryOS << funcDefs[funcName.str()] << '\n';
+    primaryOS << def.str() << '\n';
     return success();
   }
   return failure();
 }
 
-LogicalResult SMTContext::printGenericType(Type type, std::string &expr) {
+LogicalResult SMTContext::printGenericType(Type type, llvm::raw_ostream &os) {
   if (auto intType = type.dyn_cast<IntegerType>()) {
     // TODO: Add support for bitvectors
     if (intType.getWidth() == 1) {
-      expr += "Bool";
+      os << "Bool";
     } else {
-      expr += "Int";
+      os << "Int";
     }
     return success();
   }
   return emitError(UnknownLoc(), "[mlir-to-smt] Unknown type found: ") << type;
 }
 
-LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
+LogicalResult SMTContext::serializeExpression(Value value,
+                                              llvm::raw_ostream &os) {
   // Value is block argument, generate the name and return.
   // NOTE: block arguments do not have a defining op.
   if (auto blockArg = value.dyn_cast<BlockArgument>()) {
-    expr += "arg" + std::to_string(blockArg.getArgNumber());
+    os << "arg" << blockArg.getArgNumber();
     return success();
   }
 
@@ -191,19 +193,17 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
 
   // If it has a serializer interface defined, use it directly.
   if (auto serializer = dyn_cast<SMTSerializableOpInterface>(parentOp)) {
-    return serializer.serializeExpression(expr, *this);
+    return serializer.serializeExpression(os, *this);
   }
 
   // handle function calls separately.
   if (auto callOp = dyn_cast<CallOp>(parentOp)) {
     if (failed(this->addFuncDef(callOp.getCallee(), callOp.getCalleeType())))
       return failure();
-    expr += "(";
-    expr += callOp.getCallee();
-    expr += " ";
-    if (failed(serializeArguments(callOp.getArgOperands(), expr)))
+    os << "(" << callOp.getCallee() << " ";
+    if (failed(serializeArguments(callOp.getArgOperands(), os)))
       return failure();
-    expr += ")";
+    os << ")";
     return success();
   }
 
@@ -215,30 +215,31 @@ LogicalResult SMTContext::serializeExpression(Value value, std::string &expr) {
       AddIOp,
       MulIOp
       // clang-format on
-      >(parentOp, expr, *this);
+      >(parentOp, os, *this);
 }
 
 LogicalResult SMTContext::serializeArguments(ValueRange valueRange,
-                                             std::string &expr) {
+                                             llvm::raw_ostream &os) {
   bool first = true;
   for (auto val : valueRange) {
     if (!first)
-      expr += " ";
+      os << " ";
     first = false;
-    if (failed(serializeExpression(val, expr)))
+    if (failed(serializeExpression(val, os)))
       return failure();
   }
   return success();
 }
 
-LogicalResult SMTContext::serializeStatement(Operation *op, std::string &expr) {
+LogicalResult SMTContext::serializeStatement(Operation *op,
+                                             llvm::raw_ostream &os) {
   // If it is not a valid SMT2 statement, just ignore it.
   if (!op->hasTrait<OpTrait::SMTStatement>())
     return success();
 
   // If it has a serializer interface defined, use it directly.
   if (auto serializer = dyn_cast<SMTSerializableOpInterface>(op)) {
-    return serializer.serializeExpression(expr, *this);
+    return serializer.serializeExpression(os, *this);
   }
 
   // add custom patterns below:

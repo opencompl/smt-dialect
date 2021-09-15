@@ -64,9 +64,8 @@ YieldOp ForallOp::getYield() {
 
 //=== Serialize Expression Interface Methods =================================//
 
-LogicalResult ForallOp::serializeExpression(std::string &expr,
+LogicalResult ForallOp::serializeExpression(llvm::raw_ostream &os,
                                             smt::SMTContext &ctx) {
-  llvm::raw_string_ostream os(expr);
   os << "(forall (";
 
   bool first = true;
@@ -75,33 +74,33 @@ LogicalResult ForallOp::serializeExpression(std::string &expr,
       os << " ";
     first = false;
     os << "(arg" << arg.getArgNumber() << " ";
-    if (failed(ctx.printGenericType(arg.getType(), expr)))
+    if (failed(ctx.printGenericType(arg.getType(), os)))
       return failure();
     os << ")";
   }
   os << ") ";
-  if (failed(ctx.serializeExpression(getYield().getOperand(0), expr)))
+  if (failed(ctx.serializeExpression(getYield().getOperand(0), os)))
     return failure();
   os << ")";
   return success();
 }
 
-LogicalResult AssertOp::serializeExpression(std::string &expr,
+LogicalResult AssertOp::serializeExpression(llvm::raw_ostream &os,
                                             smt::SMTContext &ctx) {
-  expr += "(assert ";
-  if (failed(ctx.serializeExpression(cond(), expr)))
+  os << "(assert ";
+  if (failed(ctx.serializeExpression(cond(), os)))
     return failure();
-  expr += ")";
+  os << ")";
   return success();
 }
 
-LogicalResult CheckSatOp::serializeExpression(std::string &expr,
+LogicalResult CheckSatOp::serializeExpression(llvm::raw_ostream &os,
                                               smt::SMTContext &ctx) {
-  expr += "(check-sat)";
+  os << "(check-sat)";
   return success();
 }
-LogicalResult GetModelOp::serializeExpression(std::string &expr,
+LogicalResult GetModelOp::serializeExpression(llvm::raw_ostream &os,
                                               smt::SMTContext &ctx) {
-  expr += "(get-model)";
+  os << "(get-model)";
   return success();
 }

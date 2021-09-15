@@ -11,10 +11,10 @@ def SMTSerializableOpInterface : OpInterface<"SMTSerializableOpInterface"> {
 
   let methods = [
     InterfaceMethod<
-      /*desc=*/"Serializes into an SMT2 expression, and appends to the `expr` string",
+      /*desc=*/"Serializes into an SMT2 expression, and appends to the stream `os`",
       /*retTy=*/"LogicalResult",
       /*methodName=*/"serializeExpression",
-      /*args=*/(ins "std::string&":$expr, "smt::SMTContext&":$ctx),
+      /*args=*/(ins "llvm::raw_ostream&":$os, "smt::SMTContext&":$ctx),
       /*methodBody*/[{}]
     >
   ];

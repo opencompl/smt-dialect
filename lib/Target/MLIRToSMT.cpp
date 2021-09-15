@@ -46,7 +46,8 @@ public:
     SMTContext smtContext(module,output, *module->getContext());
     auto walkResult = module.walk([&](Operation *op) {
       std::string expr;
-      if (failed(smtContext.serializeStatement(op, expr))) {
+      llvm::raw_string_ostream os(expr);
+      if (failed(smtContext.serializeStatement(op, os))) {
         return WalkResult::interrupt();
       }
       if (!expr.empty())
