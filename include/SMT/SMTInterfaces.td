@@ -15,7 +15,16 @@ def SMTSerializableOpInterface : OpInterface<"SMTSerializableOpInterface"> {
       /*retTy=*/"LogicalResult",
       /*methodName=*/"serializeExpression",
       /*args=*/(ins "llvm::raw_ostream&":$os, "smt::SMTContext&":$ctx),
-      /*methodBody*/[{}]
+      /*methodBody=*/[{}]
+    >,
+
+    InterfaceMethod<
+      /*desc=*/"Generates the neccessary definition(s) to describe the operation semantics",
+      /*retTy=*/"LogicalResult",
+      /*methodName=*/"generateDefinitions",
+      /*args=*/(ins "smt::SMTContext&":$ctx),
+      /*methodBody=*/[{}],
+      /*defaultImplementation=*/[{ return success(); }]
     >
   ];
 }
