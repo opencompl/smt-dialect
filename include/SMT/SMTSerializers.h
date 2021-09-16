@@ -13,14 +13,20 @@ class SMTContext {
   ModuleOp module;
   llvm::raw_ostream &primaryOS;
   MLIRContext &ctx;
+  // function declarations (uninterpreted) and definitions
   std::map<std::string, std::string> funcDefs;
 
 public:
   SMTContext(ModuleOp module, llvm::raw_ostream &primaryOS, MLIRContext &ctx)
       : module(module), primaryOS(primaryOS), ctx(ctx), funcDefs() {}
 
-  // Add a (define-fun), if the symbol does not already exist.
-  LogicalResult addFuncDef(StringRef funcName, FunctionType funcType);
+  // Add a function definition, if the symbol does not already exist.
+  // If the body is empty, add an uninterpreted (declare-fun)
+  // Otherwise generate a (define-fun)
+  LogicalResult addFunc(StringRef funcName, FunctionType funcType, std::string funcBody = "");
+
+  // Convert an existing function in the module
+  LogicalResult addMLIRFunction(StringRef funcName);
 
   // Print a generic type
   LogicalResult printGenericType(Type type, llvm::raw_ostream &os);

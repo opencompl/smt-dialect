@@ -122,55 +122,73 @@ LogicalResult serializeExpression(Operation *op, llvm::raw_ostream &os,
 } // namespace
 
 //==== SMTContext ===========================================================//
-LogicalResult SMTContext::addFuncDef(StringRef funcName,
-                                     FunctionType funcType) {
-  if (funcDefs.find(funcName.str()) != funcDefs.end())
-    return success();
+LogicalResult SMTContext::addFunc(StringRef funcName, FunctionType funcType,
+                                  std::string body) {
+  // TODO: verify that the type signatures match
+  if (funcDefs.find(funcName.str()) != funcDefs.end()) {
+    return failure();
+  }
+
+  llvm::raw_string_ostream def(funcDefs[funcName.str()]);
+  const bool isDecl = body.empty();
+
+  def << "(" << (isDecl ? "declare-fun" : "define-fun") << " " << funcName;
+
+  // argument list
+  def << " (";
+  for (auto param : llvm::enumerate(funcType.getInputs())) {
+    def << "(arg" << std::to_string(param.index()) << " ";
+    if (failed(printGenericType(param.value(), def)))
+      return failure();
+    def << ")";
+  }
+  def << ") ";
+
+  // return type
+  if (failed(printGenericType(funcType.getResult(0), def)))
+    return failure();
+
+  // body (if it exists)
+  if (!isDecl)
+    def << " " << body;
+
+  def << ")";
+
+  // print the function definition
+  primaryOS << def.str() << '\n';
+
+  return success();
+}
+
+LogicalResult SMTContext::addMLIRFunction(StringRef funcName) {
   if (FuncOp func = dyn_cast<FuncOp>(module.lookupSymbol(funcName))) {
+    // found the function declaration in the module, so add that.
     if (func.getType().getNumResults() != 1) {
       return func.emitError("[mlir-to-smt] only functions with a single return "
                             "value are supported.");
     }
-    llvm::raw_string_ostream def(funcDefs[funcName.str()]);
-    if (func.isDeclaration())
-      def << "(declare-fun ";
-    else
-      def << "(define-fun ";
-    def << funcName;
 
-    // argument list
-    def << " (";
-    for (auto param : llvm::enumerate(func.getType().getInputs())) {
-      def << "(arg" << std::to_string(param.index()) << " ";
-      if (failed(printGenericType(param.value(), def)))
-        return failure();
-      def << ")";
-    }
-    def << ") ";
-
-    // return type
-    if (failed(printGenericType(func.getType().getResult(0), def)))
-      return failure();
-
-    // generate the body
+    std::string body;
     if (!func.isDeclaration()) {
-      def << " ";
+      llvm::raw_string_ostream os(body);
       auto &blocks = func.getRegion().getBlocks();
+
+      // TODO: support multi-block functions where the CFG is a DAG.
       if (blocks.size() != 1) {
         return func->emitError(
             "[mlir-to-smt] Only functions with a single block supported.");
       }
+
+      // TODO: serialize top-down, using `let` and `if` to handle branching
       if (failed(serializeExpression(
               cast<ReturnOp>(blocks.front().getTerminator()).getOperand(0),
-              def)))
+              os)))
         return failure();
     }
 
-    def << ")";
-
-    primaryOS << def.str() << '\n';
-    return success();
+    return addFunc(funcName, func.getType(), body);
   }
+
   return failure();
 }
 
@@ -206,7 +224,7 @@ LogicalResult SMTContext::serializeExpression(Value value,
 
   // handle function calls separately.
   if (auto callOp = dyn_cast<CallOp>(parentOp)) {
-    if (failed(this->addFuncDef(callOp.getCallee(), callOp.getCalleeType())))
+    if (failed(this->addMLIRFunction(callOp.getCallee())))
       return failure();
     os << "(" << callOp.getCallee() << " ";
     if (failed(serializeArguments(callOp.getArgOperands(), os)))
