@@ -1,6 +1,6 @@
 // RUN: smt-opt %s
 // RUN: smt-translate --mlir-to-smt %s | FileCheck %s
-// RUN: smt-translate --mlir-to-smt %s | z3 -in
+// no-run: smt-translate --mlir-to-smt %s | z3 -in
 
 func @main() attributes {smt_main} {
   %x = constant 42 : i32
