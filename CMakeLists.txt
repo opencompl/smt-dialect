@@ -25,10 +25,10 @@ if (MAIN_PROJECT)
   include(AddLLVM)
   include(AddMLIR)
   include(HandleLLVMOptions)
-
-  include_directories(${LLVM_INCLUDE_DIRS})
-  include_directories(${MLIR_INCLUDE_DIRS})
 endif()
+
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_BINARY_DIR}/include)
@@ -36,9 +36,10 @@ include_directories(${PROJECT_BINARY_DIR}/include)
 if (MAIN_PROJECT)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
+  
+  set(LLVM_LIT_ARGS "-sv" CACHE STRING "lit default options")
 endif()
 
-set(LLVM_LIT_ARGS "-sv" CACHE STRING "lit default options")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(sanitizers)
 
