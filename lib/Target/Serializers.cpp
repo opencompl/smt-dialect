@@ -22,16 +22,24 @@ namespace {
 
 LogicalResult serializeExpression(ConstantIntOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  unsigned width = op.getType().cast<IntegerType>().getWidth();
+  IntegerType intType = op.getType().cast<IntegerType>();
+  unsigned width = intType.getWidth();
   int64_t value = op.getValue();
-  if (width == 1) {
-    // Boolean value
+  if (width == 1) { // Boolean value
     os << (value ? "true" : "false");
     return success();
   }
-  os << value;
+  if (intType.isUnsigned()) { // unsigned, treat as bitvector.
+    os << "(_ bv" << (uint64_t)value << " " << width << ")";
+  }
+  if (value < 0) {
+    os << "(- " << (-value) << ")";
+  } else {
+    os << value;
+  }
   return success();
 }
+
 LogicalResult serializeExpression(CmpIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
   switch (op.getPredicate()) {
@@ -42,21 +50,20 @@ LogicalResult serializeExpression(CmpIOp op, llvm::raw_ostream &os,
     os << "(not (= ";
     break;
   case CmpIPredicate::sge:
-  case CmpIPredicate::uge:
     os << "(>= ";
     break;
   case CmpIPredicate::sgt:
-  case CmpIPredicate::ugt:
     os << "(> ";
     break;
   case CmpIPredicate::sle:
-  case CmpIPredicate::ule:
     os << "(<= ";
     break;
   case CmpIPredicate::slt:
-  case CmpIPredicate::ult:
     os << "(< ";
     break;
+  default:
+    op->emitError("[mlir-to-smt] Unsigned comparisons not supported (because I "
+                  "haven't yet figured out how to compare bitvectors).");
   }
   if (failed(ctx.serializeExpression(op.lhs(), os)))
     return failure();
@@ -169,10 +176,11 @@ LogicalResult SMTContext::addFuncDef(StringRef funcName,
 
 LogicalResult SMTContext::printGenericType(Type type, llvm::raw_ostream &os) {
   if (auto intType = type.dyn_cast<IntegerType>()) {
-    // TODO: Add support for bitvectors
-    if (intType.getWidth() == 1) {
+    if (intType.getWidth() == 1) { // Special case: bool type
       os << "Bool";
-    } else {
+    } else if (intType.isUnsigned()) { // treat unsigned as bitvectors
+      os << "(_ BitVec " << intType.getWidth() << ")";
+    } else { // treat signed as generic integers
       os << "Int";
     }
     return success();

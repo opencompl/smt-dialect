@@ -23,13 +23,14 @@ public:
   LogicalResult addFuncDef(StringRef funcName, FunctionType funcType);
 
   // Print a generic type
-  LogicalResult printGenericType(Type type, llvm::raw_ostream& os);
+  LogicalResult printGenericType(Type type, llvm::raw_ostream &os);
 
   // Serialize an SMT dialect op into an SMT statement
-  LogicalResult serializeStatement(Operation *op, llvm::raw_ostream& os);
+  LogicalResult serializeStatement(Operation *op, llvm::raw_ostream &os);
 
   // Serialize a list of values, space separated
-  LogicalResult serializeArguments(ValueRange valueRange, llvm::raw_ostream &expr);
+  LogicalResult serializeArguments(ValueRange valueRange,
+                                   llvm::raw_ostream &expr);
 
   // Serialize a `value` into an SMT expression and append to `expr`
   LogicalResult serializeExpression(Value value, llvm::raw_ostream &expr);

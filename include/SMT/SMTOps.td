@@ -83,6 +83,8 @@ def SMT_YieldOp : SMT_SupportOp<"yield", [Terminator, ReturnLike, ParentOneOf<["
   let verifier = ?;
 }
 
+// Statements
+
 def SMT_AssertOp : SMT_Op<"assert", [SMTStatement]> {
   let summary = "(assert <<expr>>)";
   let description = [{

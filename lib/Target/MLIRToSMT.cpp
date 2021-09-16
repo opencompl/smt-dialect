@@ -43,7 +43,7 @@ public:
     FuncOp mainFunc;
     if (!(mainFunc = getSMTMain(module)))
       return failure();
-    SMTContext smtContext(module,output, *module->getContext());
+    SMTContext smtContext(module, output, *module->getContext());
     auto walkResult = module.walk([&](Operation *op) {
       std::string expr;
       llvm::raw_string_ostream os(expr);
