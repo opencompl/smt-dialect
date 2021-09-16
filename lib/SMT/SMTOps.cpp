@@ -5,6 +5,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "SMT/SMTOps.h"
+#include "SMT/SMTSerializers.h"
 #include "Target/MLIRToSMT.h"
 
 using namespace mlir;

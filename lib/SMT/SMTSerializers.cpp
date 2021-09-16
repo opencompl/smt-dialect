@@ -1,7 +1,7 @@
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
 
 #include "SMT/SMTOps.h"
-#include "Target/MLIRToSMT.h"
+#include "SMT/SMTSerializers.h"
 
 using namespace mlir;
 using namespace smt;

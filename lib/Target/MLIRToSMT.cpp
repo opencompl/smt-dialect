@@ -7,6 +7,7 @@
 #include "mlir/Translation.h"
 
 #include "SMT/SMTOps.h"
+#include "SMT/SMTSerializers.h"
 #include "Target/MLIRToSMT.h"
 
 using namespace mlir;
