@@ -23,7 +23,8 @@ public:
   // Add a function definition, if the symbol does not already exist.
   // If the body is empty, add an uninterpreted (declare-fun)
   // Otherwise generate a (define-fun)
-  LogicalResult addFunc(StringRef funcName, FunctionType funcType, std::string funcBody = "");
+  LogicalResult addFunc(StringRef funcName, FunctionType funcType,
+                        std::string funcBody = "");
 
   // Convert an existing function in the module
   LogicalResult addMLIRFunction(StringRef funcName);
