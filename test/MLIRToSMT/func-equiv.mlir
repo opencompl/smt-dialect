@@ -1,4 +1,4 @@
-// RUN: smt-opt %s
+// RUN: smt-opt %s | smt-opt
 // RUN: smt-translate --mlir-to-smt %s | FileCheck %s
 // no-run: smt-translate --mlir-to-smt %s | z3 -in
 
