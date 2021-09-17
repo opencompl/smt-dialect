@@ -126,7 +126,7 @@ LogicalResult SMTContext::addFunc(StringRef funcName, FunctionType funcType,
                                   std::string body) {
   // TODO: verify that the type signatures match
   if (funcDefs.find(funcName.str()) != funcDefs.end()) {
-    return failure();
+    return success();
   }
 
   llvm::raw_string_ostream def(funcDefs[funcName.str()]);
