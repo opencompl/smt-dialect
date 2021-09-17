@@ -64,15 +64,17 @@ private:
 } // namespace
 
 namespace mlir {
-void registerMLIRToSMTTranslation() {
+void registerMLIRToSMTTranslation(
+    std::function<void(DialectRegistry &)> registrationCallback) {
   TranslateFromMLIRRegistration registration(
       "mlir-to-smt",
       [](ModuleOp module, raw_ostream &output) {
         SMTTranslation translation(output);
         return translation.translateToSMT(module);
       },
-      [](DialectRegistry &registry) {
+      [&](DialectRegistry &registry) {
         registry.insert<StandardOpsDialect, smt::SMTDialect>();
+        registrationCallback(registry);
       });
 }
 } // namespace mlir

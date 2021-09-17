@@ -5,10 +5,7 @@
 #include "mlir/Translation.h"
 
 #include "SMT/SMTOps.h"
-
-namespace mlir {
-void registerMLIRToSMTTranslation();
-} // namespace mlir
+#include "Target/MLIRToSMT.h"
 
 using namespace mlir;
 
