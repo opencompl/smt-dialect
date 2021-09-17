@@ -1,6 +1,7 @@
 #ifndef SMT_SMTSERIALIZERS_H_
 #define SMT_SMTSERIALIZERS_H_
 
+#include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/OpDefinition.h"
 #include "mlir/IR/Value.h"
 

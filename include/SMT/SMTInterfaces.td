@@ -14,7 +14,7 @@ def SMTSerializableOpInterface : OpInterface<"SMTSerializableOpInterface"> {
       /*desc=*/"Serializes into an SMT2 expression, and appends to the stream `os`",
       /*retTy=*/"LogicalResult",
       /*methodName=*/"serializeExpression",
-      /*args=*/(ins "llvm::raw_ostream&":$os, "smt::SMTContext&":$ctx),
+      /*args=*/(ins "llvm::raw_ostream&":$os, "::mlir::smt::SMTContext&":$ctx),
       /*methodBody=*/[{}]
     >,
 
@@ -22,7 +22,7 @@ def SMTSerializableOpInterface : OpInterface<"SMTSerializableOpInterface"> {
       /*desc=*/"Generates the neccessary definition(s) to describe the operation semantics",
       /*retTy=*/"LogicalResult",
       /*methodName=*/"generateDefinitions",
-      /*args=*/(ins "smt::SMTContext&":$ctx),
+      /*args=*/(ins "::mlir::smt::SMTContext&":$ctx),
       /*methodBody=*/[{}],
       /*defaultImplementation=*/[{ return success(); }]
     >
