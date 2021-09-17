@@ -47,11 +47,13 @@ static LogicalResult parseForallOp(OpAsmParser &parser,
 
 static void print(OpAsmPrinter &printer, ForallOp op) {
   printer << "(";
-  llvm::interleaveComma(op.body().getArguments(), printer,
-                        [&](Value v) { printer << v << " : " << v.getType(); });
+  llvm::interleaveComma(
+      op.body().getArguments(), printer,
+      [&](BlockArgument v) { printer.printRegionArgument(v); });
   printer << ") ";
   printer.printOptionalAttrDict(op->getAttrs());
-  printer.printRegion(op.body());
+  printer.printRegion(op.body(),
+                      /*printEntryBlockArgs=*/false);
 }
 
 } // namespace
