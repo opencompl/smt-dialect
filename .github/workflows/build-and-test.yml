@@ -1,6 +1,6 @@
 name: Build and test
 
-on: [push, pull_request]
+on: []
 
 env:
   LLVM_COMMIT: f4726e72386d4107f427f3b4825bdfb92d0d1a1e
