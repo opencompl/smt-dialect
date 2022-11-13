@@ -10,3 +10,5 @@ compile_commands.json
 
 tmp/
 setup-local-env.sh
+
+playground/xdsl-smt/venv/**
