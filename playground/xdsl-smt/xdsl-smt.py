@@ -2,8 +2,10 @@
 
 import argparse
 from xdsl.xdsl_opt_main import xDSLOptMain
+from bitvector_dialect import SMTBitVectorDialect
 
 from dialect import SMTDialect
+from bitvector_dialect import SMTBitVectorDialect
 from smt_conversion import print_to_smtlib
 
 
@@ -12,6 +14,7 @@ class OptMain(xDSLOptMain):
     def register_all_dialects(self):
         super().register_all_dialects()
         SMTDialect(self.ctx)
+        SMTBitVectorDialect(self.ctx)
 
     def register_all_passes(self):
         super().register_all_passes()
