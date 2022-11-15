@@ -53,13 +53,6 @@ class BoolType(ParametrizedAttribute, SMTLibSort):
         return "Bool"
 
 
-@irdl_attr_definition
-class SortType(ParametrizedAttribute):
-    name = "smt.sort"
-    identifier: ParameterDef[StringAttr]
-    params: ParameterDef[ArrayAttr[Attribute]]  # TODO: ArrayAttr[SortType]
-
-
 @irdl_op_definition
 class YieldOp(Operation):
     name = "smt.yield"
@@ -309,7 +302,6 @@ class SMTDialect:
     def __post_init__(self):
         # Base SMTLib language
         self.ctx.register_attr(BoolType)
-        self.ctx.register_attr(SortType)
         self.ctx.register_op(YieldOp)
         self.ctx.register_op(ForallOp)
         self.ctx.register_op(ExistsOp)
