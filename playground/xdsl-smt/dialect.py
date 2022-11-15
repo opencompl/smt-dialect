@@ -23,6 +23,28 @@ class SMTLibSort:
         ...
 
 
+class SMTLibOp:
+
+    @abstractmethod
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        ...
+
+
+class SimpleSMTLibOp(SMTLibOp):
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        assert isinstance(self, Operation)
+        print(f"({self.op_name()}", file=stream, end='')
+        for operand in self.operands:
+            print(" ", file=stream, end='')
+            ctx.print_expr_to_smtlib(operand, stream)
+        print(")", file=stream, end='')
+
+    @abstractmethod
+    def op_name(self) -> str:
+        ...
+
+
 @irdl_attr_definition
 class BoolType(ParametrizedAttribute, SMTLibSort):
     name = "smt.bool"
@@ -99,10 +121,16 @@ class BoolAttr(Data[bool]):
 
 
 @irdl_op_definition
-class ConstantBoolOp(Operation):
+class ConstantBoolOp(Operation, SMTLibOp):
     name = "smt.constant_bool"
     res = ResultDef(BoolType)
     value = AttributeDef(BoolAttr)
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        if self.value.data:
+            print("true", file=stream, end='')
+        else:
+            print("false", file=stream, end='')
 
 
 @irdl_op_definition
@@ -128,11 +156,14 @@ class AndOp(Operation):
 
 
 @irdl_op_definition
-class OrOp(Operation):
+class OrOp(Operation, SimpleSMTLibOp):
     name = "smt.or"
     res = ResultDef(BoolType)
     lhs = OperandDef(BoolType)
     rhs = OperandDef(BoolType)
+
+    def op_name(self) -> str:
+        return "or"
 
 
 @irdl_op_definition
@@ -144,11 +175,14 @@ class XorOp(Operation):
 
 
 @irdl_op_definition
-class EqOp(Operation):
+class EqOp(Operation, SimpleSMTLibOp):
     name = "smt.eq"
     res = ResultDef(BoolType)
     lhs = OperandDef(Attribute)
     rhs = OperandDef(Attribute)
+
+    def op_name(self) -> str:
+        return "="
 
 
 @irdl_op_definition

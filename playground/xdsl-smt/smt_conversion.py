@@ -2,11 +2,7 @@ from dataclasses import field
 from io import IOBase
 from dialect import *
 from xdsl.dialects.builtin import ModuleOp
-from xdsl.ir import Region, SSAValue
-
-
-def convert_op_to_smtlib(op: Operation, stream: IOBase):
-    print(op.name)
+from xdsl.ir import OpResult, Region, SSAValue
 
 
 @dataclass
@@ -37,6 +33,15 @@ class SMTConversionCtx:
         self.names.add(name)
         return name
 
+    def print_expr_to_smtlib(self, val: SSAValue, stream: IOBase):
+        if val in self.value_to_name.keys():
+            print(self.value_to_name[val], file=stream, end='')
+            return
+        assert isinstance(val, OpResult)
+        op = val.op
+        assert isinstance(op, SMTLibOp)
+        op.print_expr_to_smtlib(stream, self)
+
 
 def print_to_smtlib(module: ModuleOp, stream: IOBase):
     ctx = SMTConversionCtx()
@@ -46,3 +51,12 @@ def print_to_smtlib(module: ModuleOp, stream: IOBase):
             typ = op.res.typ
             assert isinstance(typ, SMTLibSort)
             print(f"(declare-const {name} {typ.as_smtlib_str()})", file=stream)
+            continue
+        if isinstance(op, AssertOp):
+            print("(assert ", file=stream, end='')
+            ctx.print_expr_to_smtlib(op.op, stream)
+            print(")", file=stream)
+            continue
+        if isinstance(op, CheckSatOp):
+            print("(check-sat)", file=stream)
+            continue
