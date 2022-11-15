@@ -4,8 +4,8 @@
 builtin.module() {
     %true: !smt.bool = smt.constant_bool true
     %false: !smt.bool = smt.constant_bool false
-    %implies: !smt.bool = smt.implies %false, %true
-    smt.assert(%implies : !smt.bool)
+    %and: !smt.bool = smt.and %false, %true
+    smt.assert(%and : !smt.bool)
 }
 
-// CHECK: (assert (=> false true))
+// CHECK: (assert (and false true))

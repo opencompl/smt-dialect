@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from io import IOBase
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 from xdsl.irdl import (ParameterDef, RegionDef, ResultDef, AttributeDef,
                        irdl_attr_definition, irdl_op_definition, OperandDef)
@@ -102,6 +102,52 @@ class CheckSatOp(Operation):
 
 # Core operations
 
+_OpT = TypeVar("_OpT", bound=Operation)
+
+
+class BinaryBoolOp(Operation):
+    res = ResultDef(BoolType)
+    lhs = OperandDef(BoolType)
+    rhs = OperandDef(BoolType)
+
+    @classmethod
+    def parse(cls: type[_OpT], result_types: list[Attribute],
+              parser: Parser) -> _OpT:
+        lhs = parser.parse_ssa_value()
+        parser.parse_string(",")
+        rhs = parser.parse_ssa_value()
+        return cls.build(result_types=[BoolType([])], operands=[lhs, rhs])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.lhs)
+        printer.print(", ")
+        printer.print_ssa_value(self.rhs)
+
+
+class BinaryTOp(Operation):
+    res = ResultDef(BoolType)
+    lhs = OperandDef(Attribute)
+    rhs = OperandDef(Attribute)
+
+    @classmethod
+    def parse(cls: type[_OpT], result_types: list[Attribute],
+              parser: Parser) -> _OpT:
+        lhs = parser.parse_ssa_value()
+        parser.parse_string(",")
+        rhs = parser.parse_ssa_value()
+        return cls.build(result_types=[BoolType([])], operands=[lhs, rhs])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.lhs)
+        printer.print(", ")
+        printer.print_ssa_value(self.rhs)
+
+    def verify_(self) -> None:
+        if self.lhs.typ != self.rhs.typ:
+            raise ValueError("Operands must have the same type")
+
 
 @irdl_attr_definition
 class BoolAttr(Data[bool]):
@@ -173,83 +219,87 @@ class NotOp(Operation, SimpleSMTLibOp):
 
 
 @irdl_op_definition
-class ImpliesOp(Operation, SimpleSMTLibOp):
+class ImpliesOp(BinaryBoolOp, SimpleSMTLibOp):
     name = "smt.implies"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(BoolType)
-    rhs = OperandDef(BoolType)
-
-    @classmethod
-    def parse(cls, result_types: list[Attribute], parser: Parser) -> ImpliesOp:
-        lhs = parser.parse_ssa_value()
-        parser.parse_string("=>")
-        rhs = parser.parse_ssa_value()
-        return ImpliesOp.build(result_types=[BoolType([])],
-                               operands=[lhs, rhs])
-
-    def print(self, printer: Printer) -> None:
-        printer.print(" ")
-        printer.print_ssa_value(self.lhs)
-        printer.print(" => ")
-        printer.print_ssa_value(self.rhs)
 
     def op_name(self) -> str:
         return "=>"
 
 
 @irdl_op_definition
-class AndOp(Operation):
+class AndOp(BinaryBoolOp, SimpleSMTLibOp):
     name = "smt.and"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(BoolType)
-    rhs = OperandDef(BoolType)
+
+    def op_name(self) -> str:
+        return "and"
 
 
 @irdl_op_definition
-class OrOp(Operation, SimpleSMTLibOp):
+class OrOp(BinaryBoolOp, SimpleSMTLibOp):
     name = "smt.or"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(BoolType)
-    rhs = OperandDef(BoolType)
 
     def op_name(self) -> str:
         return "or"
 
 
 @irdl_op_definition
-class XorOp(Operation):
+class XorOp(BinaryBoolOp, SimpleSMTLibOp):
     name = "smt.xor"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(BoolType)
-    rhs = OperandDef(BoolType)
+
+    def op_name(self) -> str:
+        return "xor"
 
 
 @irdl_op_definition
-class EqOp(Operation, SimpleSMTLibOp):
+class EqOp(BinaryTOp, SimpleSMTLibOp):
     name = "smt.eq"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(Attribute)
-    rhs = OperandDef(Attribute)
 
     def op_name(self) -> str:
         return "="
 
 
 @irdl_op_definition
-class DiscinctOp(Operation):
+class DiscinctOp(BinaryTOp, SimpleSMTLibOp):
     name = "smt.distinct"
-    res = ResultDef(BoolType)
-    lhs = OperandDef(Attribute)
-    rhs = OperandDef(Attribute)
+
+    def op_name(self) -> str:
+        return "distinct"
 
 
 @irdl_op_definition
-class IteOp(Operation):
+class IteOp(Operation, SimpleSMTLibOp):
     name = "smt.ite"
     res = ResultDef(Attribute)
     cond = OperandDef(BoolType)
     true_val = OperandDef(Attribute)
     false_val = OperandDef(Attribute)
+
+    @classmethod
+    def parse(cls: type[IteOp], result_types: list[Attribute],
+              parser: Parser) -> IteOp:
+        cond = parser.parse_ssa_value()
+        parser.parse_string(",")
+        true_val = parser.parse_ssa_value()
+        parser.parse_string(",")
+        false_val = parser.parse_ssa_value()
+        return cls.create(result_types=[true_val.typ],
+                          operands=[cond, true_val, false_val])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.cond)
+        printer.print(", ")
+        printer.print_ssa_value(self.true_val)
+        printer.print(", ")
+        printer.print_ssa_value(self.false_val)
+
+    def verify_(self) -> None:
+        if not (self.res.typ == self.true_val.typ == self.false_val.typ):
+            raise ValueError(
+                "The result and both values must have the same type")
+
+    def op_name(self) -> str:
+        return "ite"
 
 
 @dataclass
