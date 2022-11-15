@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from xdsl.dialects.arith import MLContext
 from xdsl.dialects.builtin import StringAttr, IntAttr
 from xdsl.ir import Operation, ParametrizedAttribute
-from xdsl.irdl import ParameterDef, irdl_op_definition, irdl_attr_definition, AttributeDef, ResultDef, builder
-from dialect import ConstantBoolOp, SMTLibOp, SMTLibSort
+from xdsl.irdl import ParameterDef, irdl_op_definition, irdl_attr_definition, AttributeDef, ResultDef, builder, OperandDef
+from dialect import ConstantBoolOp, SMTLibOp, SMTLibSort, SimpleSMTLibOp
 from xdsl.parser import Parser
 from xdsl.printer import Printer
 
@@ -84,6 +84,38 @@ class ConstantOp(Operation, SMTLibOp):
         print(self.value.as_smtlib_str(), file=stream, end='')
 
 
+class BinaryBVOp(Operation):
+    res = ResultDef(BitVectorType)
+    lhs = OperandDef(BitVectorType)
+    rhs = OperandDef(BitVectorType)
+
+    @classmethod
+    def parse(cls: type[_OpT], result_types: list[Attribute],
+              parser: Parser) -> _OpT:
+        lhs = parser.parse_ssa_value()
+        parser.parse_string(",")
+        rhs = parser.parse_ssa_value()
+        return cls.build(result_types=[lhs.typ], operands=[lhs, rhs])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.lhs)
+        printer.print(", ")
+        printer.print_ssa_value(self.rhs)
+
+    def verify_(self):
+        if not (self.res.typ == self.lhs.typ == self.rhs.typ):
+            raise ValueError("Operands must have same type")
+
+
+@irdl_op_definition
+class AddOp(BinaryBVOp, SimpleSMTLibOp):
+    name = "smt.bv.add"
+
+    def op_name(self) -> str:
+        return "bvadd"
+
+
 @dataclass
 class SMTBitVectorDialect:
     ctx: MLContext
@@ -92,3 +124,4 @@ class SMTBitVectorDialect:
         self.ctx.register_attr(BitVectorType)
         self.ctx.register_attr(BitVectorValue)
         self.ctx.register_op(ConstantOp)
+        self.ctx.register_op(AddOp)
