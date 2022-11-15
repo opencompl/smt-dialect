@@ -1,5 +1,8 @@
 from __future__ import annotations
+from abc import abstractmethod
 from dataclasses import dataclass
+from io import IOBase
+from typing import TYPE_CHECKING
 
 from xdsl.irdl import (ParameterDef, RegionDef, ResultDef, AttributeDef,
                        irdl_attr_definition, irdl_op_definition, OperandDef)
@@ -9,10 +12,23 @@ from xdsl.parser import Parser
 from xdsl.printer import Printer
 from xdsl.dialects.builtin import (ArrayAttr, StringAttr)
 
+if TYPE_CHECKING:
+    from smt_conversion import SMTConversionCtx
+
+
+class SMTLibSort:
+
+    @abstractmethod
+    def as_smtlib_str(self) -> str:
+        ...
+
 
 @irdl_attr_definition
-class BoolType(ParametrizedAttribute):
+class BoolType(ParametrizedAttribute, SMTLibSort):
     name = "smt.bool"
+
+    def as_smtlib_str(self) -> str:
+        return "Bool"
 
 
 @irdl_attr_definition

@@ -43,4 +43,6 @@ def print_to_smtlib(module: ModuleOp, stream: IOBase):
     for op in module.ops:
         if isinstance(op, DeclareConstOp):
             name = ctx.get_fresh_name(op.res)
-            print(f"(declare-const {name} Bool)", file=stream)
+            typ = op.res.typ
+            assert isinstance(typ, SMTLibSort)
+            print(f"(declare-const {name} {typ.as_smtlib_str()})", file=stream)
