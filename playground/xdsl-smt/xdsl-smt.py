@@ -4,6 +4,7 @@ import argparse
 from xdsl.xdsl_opt_main import xDSLOptMain
 
 from dialect import SMTDialect
+from smt_conversion import print_to_smtlib
 
 
 class OptMain(xDSLOptMain):
@@ -17,6 +18,10 @@ class OptMain(xDSLOptMain):
 
     def register_all_arguments(self, arg_parser: argparse.ArgumentParser):
         super().register_all_arguments(arg_parser)
+
+    def register_all_targets(self):
+        super().register_all_targets()
+        self.available_targets['smt'] = print_to_smtlib
 
 
 def __main__():
