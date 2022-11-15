@@ -132,19 +132,69 @@ class ConstantBoolOp(Operation, SMTLibOp):
         else:
             print("false", file=stream, end='')
 
+    @staticmethod
+    def from_bool(value: bool) -> ConstantBoolOp:
+        return ConstantBoolOp.create(result_types=[BoolType([])],
+                                     attributes={"value": BoolAttr(value)})
+
+    @classmethod
+    def parse(cls, result_types: list[Attribute],
+              parser: Parser) -> ConstantBoolOp:
+        if parser.parse_optional_string("true"):
+            return cls.from_bool(True)
+        if parser.parse_optional_string("false"):
+            return cls.from_bool(False)
+        raise ValueError("Expected 'true' or 'false'")
+
+    def print(self, printer: Printer) -> None:
+        if self.value.data:
+            printer.print(" true")
+        else:
+            printer.print(" false")
+
 
 @irdl_op_definition
-class NotOp(Operation):
+class NotOp(Operation, SimpleSMTLibOp):
     name = "smt.not"
     res = ResultDef(BoolType)
     arg = OperandDef(BoolType)
 
+    @classmethod
+    def parse(cls, result_types: list[Attribute], parser: Parser) -> NotOp:
+        val = parser.parse_ssa_value()
+        return cls.build(result_types=[BoolType([])], operands=[val])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.arg)
+
+    def op_name(self) -> str:
+        return "not"
+
 
 @irdl_op_definition
-class ImpliesOp(Operation):
+class ImpliesOp(Operation, SimpleSMTLibOp):
     name = "smt.implies"
     res = ResultDef(BoolType)
-    arg = OperandDef(BoolType)
+    lhs = OperandDef(BoolType)
+    rhs = OperandDef(BoolType)
+
+    @classmethod
+    def parse(cls, result_types: list[Attribute], parser: Parser) -> ImpliesOp:
+        lhs = parser.parse_ssa_value()
+        parser.parse_string("=>")
+        rhs = parser.parse_ssa_value()
+        return ImpliesOp.build(result_types=[BoolType([])],
+                               operands=[lhs, rhs])
+
+    def print(self, printer: Printer) -> None:
+        printer.print(" ")
+        printer.print_ssa_value(self.lhs)
+        printer.print(" => ")
+        printer.print_ssa_value(self.rhs)
+
+    def op_name(self) -> str:
+        return "=>"
 
 
 @irdl_op_definition

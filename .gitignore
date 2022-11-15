@@ -12,3 +12,5 @@ tmp/
 setup-local-env.sh
 
 playground/xdsl-smt/venv/**
+
+**/.lit_test_times.txt
