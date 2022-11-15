@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, TypeVar
 from xdsl.irdl import (ParameterDef, RegionDef, ResultDef, AttributeDef,
                        irdl_attr_definition, irdl_op_definition, OperandDef)
 from xdsl.ir import (MLContext, Operation, Data, ParametrizedAttribute,
-                     Attribute)
+                     Attribute, SSAValue)
 from xdsl.parser import Parser
 from xdsl.printer import Printer
 from xdsl.dialects.builtin import (ArrayAttr, StringAttr)
@@ -56,21 +56,69 @@ class BoolType(ParametrizedAttribute, SMTLibSort):
 @irdl_op_definition
 class YieldOp(Operation):
     name = "smt.yield"
-    ret = ResultDef(BoolType)
+    ret = OperandDef(BoolType)
+
+    @classmethod
+    def parse(cls: type[YieldOp], result_types: list[Attribute],
+              parser: Parser) -> YieldOp:
+        ret = parser.parse_ssa_value()
+        return YieldOp.create(operands=[ret])
+
+    def print(self, printer: Printer):
+        printer.print(" ")
+        printer.print_ssa_value(self.ret)
 
 
 @irdl_op_definition
-class ForallOp(Operation):
+class ForallOp(Operation, SMTLibOp):
     name = "smt.forall"
     res = ResultDef(BoolType)
     reg = RegionDef()
 
+    def get_yield_val(self) -> SSAValue:
+        yield_op = self.reg.ops[-1]
+        if not isinstance(yield_op, YieldOp):
+            raise ValueError("Region does not end in yield")
+        return yield_op.ret
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(forall (", file=stream, end='')
+        for idx, param in enumerate(self.reg.blocks[0].args):
+            param_name = ctx.get_fresh_name(param)
+            if idx != 0:
+                print(" ", file=stream, end='')
+            print(f"({param_name} {param.typ.as_smtlib_str()})",
+                  file=stream,
+                  end='')
+        print(") ", file=stream, end='')
+        ctx.print_expr_to_smtlib(self.get_yield_val(), stream)
+        print(")", file=stream, end='')
+
 
 @irdl_op_definition
-class ExistsOp(Operation):
+class ExistsOp(Operation, SMTLibOp):
     name = "smt.exists"
     res = ResultDef(BoolType)
     reg = RegionDef()
+
+    def get_yield_val(self) -> SSAValue:
+        yield_op = self.reg.ops[-1]
+        if not isinstance(yield_op, YieldOp):
+            raise ValueError("Region does not end in yield")
+        return yield_op.ret
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(exists (", file=stream, end='')
+        for idx, param in enumerate(self.reg.blocks[0].args):
+            param_name = ctx.get_fresh_name(param)
+            if idx != 0:
+                print(" ", file=stream, end='')
+            print(f"({param_name} {param.typ.as_smtlib_str()})",
+                  file=stream,
+                  end='')
+        print(") ", file=stream, end='')
+        ctx.print_expr_to_smtlib(self.get_yield_val(), stream)
+        print(")", file=stream, end='')
 
 
 # Script operations
