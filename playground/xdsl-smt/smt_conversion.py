@@ -46,17 +46,6 @@ class SMTConversionCtx:
 def print_to_smtlib(module: ModuleOp, stream: IOBase):
     ctx = SMTConversionCtx()
     for op in module.ops:
-        if isinstance(op, DeclareConstOp):
-            name = ctx.get_fresh_name(op.res)
-            typ = op.res.typ
-            assert isinstance(typ, SMTLibSort)
-            print(f"(declare-const {name} {typ.as_smtlib_str()})", file=stream)
-            continue
-        if isinstance(op, AssertOp):
-            print("(assert ", file=stream, end='')
-            ctx.print_expr_to_smtlib(op.op, stream)
-            print(")", file=stream)
-            continue
-        if isinstance(op, CheckSatOp):
-            print("(check-sat)", file=stream)
+        if isinstance(op, SMTLibScriptOp):
+            op.print_expr_to_smtlib(stream, ctx)
             continue

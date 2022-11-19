@@ -4,13 +4,14 @@ from dataclasses import dataclass
 from io import IOBase
 from typing import TYPE_CHECKING, TypeVar
 
-from xdsl.irdl import (ParameterDef, RegionDef, ResultDef, AttributeDef,
-                       irdl_attr_definition, irdl_op_definition, OperandDef)
+from xdsl.irdl import (OptAttributeDef, ParameterDef, RegionDef, ResultDef,
+                       AttributeDef, irdl_attr_definition, irdl_op_definition,
+                       OperandDef)
 from xdsl.ir import (MLContext, Operation, Data, ParametrizedAttribute,
                      Attribute, SSAValue)
 from xdsl.parser import Parser
 from xdsl.printer import Printer
-from xdsl.dialects.builtin import (ArrayAttr, StringAttr)
+from xdsl.dialects.builtin import (ArrayAttr, FunctionType, StringAttr)
 
 if TYPE_CHECKING:
     from smt_conversion import SMTConversionCtx
@@ -28,6 +29,10 @@ class SMTLibOp:
     @abstractmethod
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         ...
+
+
+class SMTLibScriptOp(SMTLibOp):
+    pass
 
 
 class SimpleSMTLibOp(SMTLibOp):
@@ -125,20 +130,34 @@ class ExistsOp(Operation, SMTLibOp):
 
 
 @irdl_op_definition
-class DeclareConstOp(Operation):
+class DeclareConstOp(Operation, SMTLibScriptOp):
     name = "smt.declare_const"
     res = ResultDef(Attribute)
 
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        name = ctx.get_fresh_name(self.res)
+        typ = self.res.typ
+        assert isinstance(typ, SMTLibSort)
+        print(f"(declare-const {name} {typ.as_smtlib_str()})", file=stream)
+
 
 @irdl_op_definition
-class AssertOp(Operation):
+class AssertOp(Operation, SMTLibScriptOp):
     name = "smt.assert"
     op = OperandDef(BoolType)
 
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(assert ", file=stream, end='')
+        ctx.print_expr_to_smtlib(self.op, stream)
+        print(")", file=stream)
+
 
 @irdl_op_definition
-class CheckSatOp(Operation):
+class CheckSatOp(Operation, SMTLibScriptOp):
     name = "smt.check_sat"
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(check-sat)", file=stream)
 
 
 # Core operations
