@@ -8,7 +8,7 @@ builtin.module() {
     }
     %true: !smt.bool = smt.constant_bool true
     %res: !smt.bool = smt.call(%fun: !fun<[!smt.bool], [!smt.bool]>, %true: !smt.bool)
-    smt.assert(%res: !smt.bool)
+    smt.assert %res
 }
 
 // CHECK: (define-fun {{.*}} ((tmp Bool)) Bool

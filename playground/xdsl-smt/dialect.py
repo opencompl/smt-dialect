@@ -231,6 +231,15 @@ class AssertOp(Operation, SMTLibScriptOp):
         ctx.print_expr_to_smtlib(self.op, stream)
         print(")", file=stream)
 
+    @classmethod
+    def parse(cls: type[AssertOp], result_types: list[Attribute],
+              parser: Parser) -> AssertOp:
+        operand = parser.parse_ssa_value()
+        return AssertOp.create(operands=[operand])
+
+    def print(self, printer: Printer):
+        printer.print(" ", self.op)
+
 
 @irdl_op_definition
 class CheckSatOp(Operation, SMTLibScriptOp):

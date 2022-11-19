@@ -3,10 +3,10 @@
 
 builtin.module() {
     %true: !smt.bool = smt.constant_bool true
-    smt.assert(%true : !smt.bool)
+    smt.assert %true
 
     %false: !smt.bool = smt.constant_bool false
-    smt.assert(%false : !smt.bool)
+    smt.assert %false
 }
 
 // CHECK: (assert true)

@@ -5,7 +5,7 @@ builtin.module() {
     %true: !smt.bool = smt.constant_bool true
     %false: !smt.bool = smt.constant_bool false
     %eq: !smt.bool = smt.eq %false, %true
-    smt.assert(%eq : !smt.bool)
+    smt.assert %eq
 }
 
 // CHECK: (assert (= false true))

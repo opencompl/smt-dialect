@@ -6,7 +6,7 @@ builtin.module() {
       ^bb(%x: !smt.bool):
         smt.yield %x
     }
-    smt.assert(%b : !smt.bool)
+    smt.assert %b
 }
 
 // CHECK: (assert (forall (({{.*}} Bool)) {{.*}}))
