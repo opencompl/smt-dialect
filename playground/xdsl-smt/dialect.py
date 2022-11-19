@@ -78,17 +78,18 @@ class YieldOp(Operation):
 class ForallOp(Operation, SMTLibOp):
     name = "smt.forall"
     res = ResultDef(BoolType)
-    reg = RegionDef()
+    body = RegionDef()
 
-    def get_yield_val(self) -> SSAValue:
-        yield_op = self.reg.ops[-1]
+    @property
+    def return_val(self) -> SSAValue:
+        yield_op = self.body.ops[-1]
         if not isinstance(yield_op, YieldOp):
             raise ValueError("Region does not end in yield")
         return yield_op.ret
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(forall (", file=stream, end='')
-        for idx, param in enumerate(self.reg.blocks[0].args):
+        for idx, param in enumerate(self.body.blocks[0].args):
             param_name = ctx.get_fresh_name(param)
             if idx != 0:
                 print(" ", file=stream, end='')
@@ -96,7 +97,7 @@ class ForallOp(Operation, SMTLibOp):
                   file=stream,
                   end='')
         print(") ", file=stream, end='')
-        ctx.print_expr_to_smtlib(self.get_yield_val(), stream)
+        ctx.print_expr_to_smtlib(self.return_val, stream)
         print(")", file=stream, end='')
 
 
@@ -104,17 +105,18 @@ class ForallOp(Operation, SMTLibOp):
 class ExistsOp(Operation, SMTLibOp):
     name = "smt.exists"
     res = ResultDef(BoolType)
-    reg = RegionDef()
+    body = RegionDef()
 
-    def get_yield_val(self) -> SSAValue:
-        yield_op = self.reg.ops[-1]
+    @property
+    def return_val(self) -> SSAValue:
+        yield_op = self.body.ops[-1]
         if not isinstance(yield_op, YieldOp):
             raise ValueError("Region does not end in yield")
         return yield_op.ret
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(exists (", file=stream, end='')
-        for idx, param in enumerate(self.reg.blocks[0].args):
+        for idx, param in enumerate(self.body.blocks[0].args):
             param_name = ctx.get_fresh_name(param)
             if idx != 0:
                 print(" ", file=stream, end='')
@@ -122,11 +124,65 @@ class ExistsOp(Operation, SMTLibOp):
                   file=stream,
                   end='')
         print(") ", file=stream, end='')
-        ctx.print_expr_to_smtlib(self.get_yield_val(), stream)
+        ctx.print_expr_to_smtlib(self.return_val, stream)
         print(")", file=stream, end='')
 
 
 # Script operations
+
+
+@irdl_op_definition
+class DefineFunOp(Operation, SMTLibScriptOp):
+    name = "smt.define_fun"
+    fun_name = OptAttributeDef(StringAttr)
+    ret = ResultDef(FunctionType)
+    body = RegionDef()
+
+    @property
+    def func_type(self) -> FunctionType:
+        return self.ret.typ
+
+    @property
+    def return_val(self) -> SSAValue:
+        yield_op = self.body.ops[-1]
+        if not isinstance(yield_op, YieldOp):
+            raise ValueError("Region does not end in yield")
+        return yield_op.ret
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(define-fun ", file=stream, end='')
+
+        # Print the function name
+        name: str
+        if self.fun_name is not None:
+            name = ctx.get_fresh_name(self.fun_name.data)
+            ctx.value_to_name[self.ret] = name
+        else:
+            name = ctx.get_fresh_name(self.ret)
+        print(f"{name} ", file=stream, end='')
+
+        # Print the function arguments
+        print("(", file=stream, end='')
+        for idx, arg in enumerate(self.body.blocks[0].args):
+            if idx != 0:
+                print(" ", file=stream, end='')
+            arg_name = ctx.get_fresh_name(arg)
+            typ = arg.typ
+            assert isinstance(typ, SMTLibSort)
+            print(f"({arg_name} {typ.as_smtlib_str()})", file=stream, end='')
+        print(") ", file=stream, end='')
+
+        # Print the function return type
+        # TODO: support multiple results, or assert this in the verifier
+        assert (len(self.func_type.outputs.data) == 1)
+        ret_type = self.func_type.outputs.data[0]
+        assert isinstance(ret_type, SMTLibSort)
+        print(f"{ret_type.as_smtlib_str()}", file=stream)
+
+        # Print the function body
+        print("  ", file=stream, end='')
+        ctx.print_expr_to_smtlib(self.return_val, stream)
+        print(")", file=stream)
 
 
 @irdl_op_definition
@@ -139,6 +195,14 @@ class DeclareConstOp(Operation, SMTLibScriptOp):
         typ = self.res.typ
         assert isinstance(typ, SMTLibSort)
         print(f"(declare-const {name} {typ.as_smtlib_str()})", file=stream)
+
+    @classmethod
+    def parse(cls: type[DeclareConstOp], result_types: list[Attribute],
+              parser: Parser) -> DeclareConstOp:
+        return DeclareConstOp.create(result_types=result_types)
+
+    def print(self, printer: Printer):
+        pass
 
 
 @irdl_op_definition
@@ -158,6 +222,14 @@ class CheckSatOp(Operation, SMTLibScriptOp):
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(check-sat)", file=stream)
+
+    @classmethod
+    def parse(cls: type[CheckSatOp], result_types: list[Attribute],
+              parser: Parser) -> CheckSatOp:
+        return CheckSatOp.create()
+
+    def print(self, printer: Printer):
+        pass
 
 
 # Core operations
@@ -374,6 +446,7 @@ class SMTDialect:
         self.ctx.register_op(ExistsOp)
 
         # SMTLib Scripting
+        self.ctx.register_op(DefineFunOp)
         self.ctx.register_op(DeclareConstOp)
         self.ctx.register_op(AssertOp)
         self.ctx.register_op(CheckSatOp)
