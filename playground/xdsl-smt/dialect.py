@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, TypeVar
 
 from xdsl.irdl import (OptAttributeDef, ParameterDef, RegionDef, ResultDef,
                        AttributeDef, irdl_attr_definition, irdl_op_definition,
-                       OperandDef)
+                       OperandDef, VarOperandDef)
 from xdsl.ir import (MLContext, Operation, Data, ParametrizedAttribute,
                      Attribute, SSAValue)
 from xdsl.parser import Parser
@@ -125,6 +125,22 @@ class ExistsOp(Operation, SMTLibOp):
                   end='')
         print(") ", file=stream, end='')
         ctx.print_expr_to_smtlib(self.return_val, stream)
+        print(")", file=stream, end='')
+
+
+@irdl_op_definition
+class CallOp(Operation, SMTLibOp):
+    name = "smt.call"
+    res = ResultDef(Attribute)
+    func = OperandDef(Attribute)
+    args = VarOperandDef(Attribute)
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(", file=stream, end='')
+        for idx, operand in enumerate(self.operands):
+            if idx != 0:
+                print(" ", file=stream, end='')
+            ctx.print_expr_to_smtlib(operand, stream)
         print(")", file=stream, end='')
 
 
@@ -444,6 +460,7 @@ class SMTDialect:
         self.ctx.register_op(YieldOp)
         self.ctx.register_op(ForallOp)
         self.ctx.register_op(ExistsOp)
+        self.ctx.register_op(CallOp)
 
         # SMTLib Scripting
         self.ctx.register_op(DefineFunOp)
