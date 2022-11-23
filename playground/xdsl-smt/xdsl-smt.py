@@ -7,12 +7,15 @@ from bitvector_dialect import SMTBitVectorDialect
 from dialect import SMTDialect
 from bitvector_dialect import SMTBitVectorDialect
 from smt_conversion import print_to_smtlib
+from xdsl.dialects.builtin import Builtin
+from arith_dialect import Arith
 
 
 class OptMain(xDSLOptMain):
 
     def register_all_dialects(self):
-        super().register_all_dialects()
+        Arith(self.ctx)
+        Builtin(self.ctx)
         SMTDialect(self.ctx)
         SMTBitVectorDialect(self.ctx)
 
