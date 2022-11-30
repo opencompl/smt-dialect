@@ -10,6 +10,8 @@ from smt_conversion import print_to_smtlib
 from xdsl.dialects.builtin import Builtin
 from arith_dialect import Arith
 
+from arith_to_smt import arith_to_smt
+
 
 class OptMain(xDSLOptMain):
 
@@ -21,6 +23,7 @@ class OptMain(xDSLOptMain):
 
     def register_all_passes(self):
         super().register_all_passes()
+        self.available_passes["arith_to_smt"] = arith_to_smt
 
     def register_all_arguments(self, arg_parser: argparse.ArgumentParser):
         super().register_all_arguments(arg_parser)
