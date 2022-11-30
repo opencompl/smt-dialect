@@ -145,8 +145,6 @@ class CallOp(Operation, SMTLibOp):
 
 
 # Script operations
-
-
 @irdl_op_definition
 class DefineFunOp(Operation, SMTLibScriptOp):
     name = "smt.define_fun"
@@ -160,10 +158,10 @@ class DefineFunOp(Operation, SMTLibScriptOp):
 
     @property
     def return_val(self) -> SSAValue:
-        yield_op = self.body.ops[-1]
-        if not isinstance(yield_op, YieldOp):
+        ret_op = self.body.ops[-1]
+        if not isinstance(ret_op, ReturnOp):
             raise ValueError("Region does not end in yield")
-        return yield_op.ret
+        return ret_op.ret
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(define-fun ", file=stream, end='')
@@ -199,6 +197,18 @@ class DefineFunOp(Operation, SMTLibScriptOp):
         print("  ", file=stream, end='')
         ctx.print_expr_to_smtlib(self.return_val, stream)
         print(")", file=stream)
+
+
+@irdl_op_definition
+class ReturnOp(Operation):
+    name = "smt.return"
+    ret = OperandDef(Attribute)
+
+    def verify_(self):
+        if not isinstance(self.parent_op(), DefineFunOp):
+            raise ValueError("ReturnOp must be nested inside a DefineFunOp")
+        if not self.ret.typ == self.parent_op().func_type.outputs.data[0]:
+            raise ValueError("ReturnOp type mismatch with DefineFunOp")
 
 
 @irdl_op_definition
@@ -473,6 +483,7 @@ class SMTDialect:
 
         # SMTLib Scripting
         self.ctx.register_op(DefineFunOp)
+        self.ctx.register_op(ReturnOp)
         self.ctx.register_op(DeclareConstOp)
         self.ctx.register_op(AssertOp)
         self.ctx.register_op(CheckSatOp)

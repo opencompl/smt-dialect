@@ -5,7 +5,7 @@ builtin.module() {
     %fun: !fun<[!smt.bool], [!smt.bool]> = smt.define_fun() {
         ^bb0(%x: !smt.bool):
             %y: !smt.bool = smt.not %x
-            smt.yield %y
+            smt.return(%y : !smt.bool)
     }
 }
 

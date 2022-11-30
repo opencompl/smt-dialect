@@ -6,6 +6,7 @@ from bitvector_dialect import SMTBitVectorDialect
 
 from dialect import SMTDialect
 from bitvector_dialect import SMTBitVectorDialect
+from utils_dialect import SMTUtilsDialect
 from smt_conversion import print_to_smtlib
 from xdsl.dialects.builtin import Builtin
 from arith_dialect import Arith
@@ -20,6 +21,7 @@ class OptMain(xDSLOptMain):
         Builtin(self.ctx)
         SMTDialect(self.ctx)
         SMTBitVectorDialect(self.ctx)
+        SMTUtilsDialect(self.ctx)
 
     def register_all_passes(self):
         super().register_all_passes()

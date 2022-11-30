@@ -4,7 +4,7 @@
 builtin.module() {
     %fun: !fun<[!smt.bool], [!smt.bool]> = smt.define_fun() {
         ^bb0(%x: !smt.bool):
-            smt.yield %x
+            smt.return(%x : !smt.bool)
     }
     %true: !smt.bool = smt.constant_bool true
     %res: !smt.bool = smt.call(%fun: !fun<[!smt.bool], [!smt.bool]>, %true: !smt.bool)

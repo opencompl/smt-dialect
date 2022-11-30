@@ -45,6 +45,8 @@ class SMTConversionCtx:
 
 def print_to_smtlib(module: ModuleOp, stream: IOBase):
     ctx = SMTConversionCtx()
+    print("(declare-datatypes ((Pair 2)) "
+          "((par (X Y) ((pair (first X) (second Y))))))")
     for op in module.ops:
         if isinstance(op, SMTLibScriptOp):
             op.print_expr_to_smtlib(stream, ctx)
