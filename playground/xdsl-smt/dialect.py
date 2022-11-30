@@ -164,10 +164,17 @@ class DefineFunOp(Operation, SMTLibScriptOp):
         return ret_op.ret
 
     @staticmethod
-    def from_function_type(func_type: FunctionType):
+    def from_function_type(func_type: FunctionType,
+                           name: str | StringAttr | None):
         block = Block.from_arg_types(func_type.inputs.data)
         region = Region.from_block_list([block])
-        return DefineFunOp.create(result_types=[func_type], regions=[region])
+        if name is None:
+            return DefineFunOp.create(result_types=[func_type],
+                                      regions=[region])
+        else:
+            return DefineFunOp.build(result_types=[func_type],
+                                     attributes={"name": name},
+                                     regions=[region])
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(define-fun ", file=stream, end='')
