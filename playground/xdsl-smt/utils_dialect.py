@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 from xdsl.ir import Attribute, MLContext, Operation, ParametrizedAttribute
 from xdsl.irdl import AttributeDef, OperandDef, ParameterDef, ResultDef, irdl_attr_definition, irdl_op_definition
 
-from dialect import SMTLibOp, SMTLibSort
+from dialect import SMTLibOp, SMTLibSort, SimpleSMTLibOp
 
 _F = TypeVar("_F", bound=Attribute)
 _S = TypeVar("_S", bound=Attribute)
@@ -35,24 +35,24 @@ class ConstantPairOp(Operation, SMTLibOp):
 
 
 @irdl_op_definition
-class FirstOp(Operation, SMTLibOp):
+class FirstOp(Operation, SimpleSMTLibOp):
     name = "smt.utils.first"
 
     res = ResultDef(Attribute)
     pair = OperandDef(PairType)
 
-    def as_smtlib_str(self) -> str:
+    def op_name(self) -> str:
         return "first"
 
 
 @irdl_op_definition
-class SecondOp(Operation, SMTLibOp):
+class SecondOp(Operation, SimpleSMTLibOp):
     name = "smt.utils.second"
 
     res = ResultDef(Attribute)
     pair = OperandDef(PairType)
 
-    def as_smtlib_str(self) -> str:
+    def op_name(self) -> str:
         return "second"
 
 
