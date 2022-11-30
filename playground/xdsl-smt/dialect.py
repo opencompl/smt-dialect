@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, TypeVar
 from xdsl.irdl import (OptAttributeDef, ParameterDef, RegionDef, ResultDef,
                        AttributeDef, irdl_attr_definition, irdl_op_definition,
                        OperandDef, VarOperandDef)
-from xdsl.ir import (MLContext, Operation, Data, ParametrizedAttribute,
-                     Attribute, SSAValue)
+from xdsl.ir import (Block, MLContext, Operation, Data, ParametrizedAttribute,
+                     Attribute, SSAValue, Region)
 from xdsl.parser import Parser
 from xdsl.printer import Printer
 from xdsl.dialects.builtin import (ArrayAttr, FunctionType, StringAttr)
@@ -162,6 +162,12 @@ class DefineFunOp(Operation, SMTLibScriptOp):
         if not isinstance(ret_op, ReturnOp):
             raise ValueError("Region does not end in yield")
         return ret_op.ret
+
+    @staticmethod
+    def from_function_type(func_type: FunctionType):
+        block = Block.from_arg_types(func_type.inputs.data)
+        region = Region.from_block_list([block])
+        return DefineFunOp.create(result_types=[func_type], regions=[region])
 
     def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
         print("(define-fun ", file=stream, end='')
