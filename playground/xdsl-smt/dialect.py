@@ -165,7 +165,7 @@ class DefineFunOp(Operation, SMTLibScriptOp):
 
     @staticmethod
     def from_function_type(func_type: FunctionType,
-                           name: str | StringAttr | None):
+                           name: str | StringAttr | None = None):
         block = Block.from_arg_types(func_type.inputs.data)
         region = Region.from_block_list([block])
         if name is None:
