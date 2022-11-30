@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from io import IOBase
+from smt_conversion import SMTConversionCtx
 from xdsl.dialects.arith import MLContext
-from xdsl.dialects.builtin import StringAttr, IntAttr
-from xdsl.ir import Operation, ParametrizedAttribute
+from xdsl.dialects.builtin import IntAttr
+from xdsl.ir import Attribute, Operation, ParametrizedAttribute
 from xdsl.irdl import ParameterDef, irdl_op_definition, irdl_attr_definition, AttributeDef, ResultDef, builder, OperandDef
-from dialect import ConstantBoolOp, SMTLibOp, SMTLibSort, SimpleSMTLibOp
+from dialect import SMTLibOp, SMTLibSort, SimpleSMTLibOp
 from xdsl.parser import Parser
 from xdsl.printer import Printer
 
@@ -70,7 +72,7 @@ class ConstantOp(Operation, SMTLibOp):
 
     @classmethod
     def parse(cls, result_types: list[Attribute],
-              parser: Parser) -> ConstantBoolOp:
+              parser: Parser) -> ConstantOp:
         attr = parser.parse_attribute()
         if not isinstance(attr, BitVectorValue):
             raise ValueError("Expected a bitvector value")
@@ -80,7 +82,8 @@ class ConstantOp(Operation, SMTLibOp):
     def print(self, printer: Printer) -> None:
         printer.print(" ", self.value)
 
-    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+    def print_expr_to_smtlib(self, stream: IOBase,
+                             ctx: SMTConversionCtx) -> None:
         print(self.value.as_smtlib_str(), file=stream, end='')
 
 
