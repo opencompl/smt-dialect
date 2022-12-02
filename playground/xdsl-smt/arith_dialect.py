@@ -58,7 +58,7 @@ class Arith:
 
 @irdl_op_definition
 class Addf(Operation):
-    name = "addf"
+    name = "arith.addf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -67,7 +67,7 @@ class Addf(Operation):
 
 @irdl_op_definition
 class Addi(Operation):
-    name = "addi"
+    name = "arith.addi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -76,7 +76,7 @@ class Addi(Operation):
 
 @irdl_op_definition
 class AdduiCarry(Operation):
-    name = "addui_carry"
+    name = "arith.addui_carry"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     sum = ResultDef(AnyAttr())
@@ -86,7 +86,7 @@ class AdduiCarry(Operation):
 
 @irdl_op_definition
 class Andi(Operation):
-    name = "andi"
+    name = "arith.andi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -95,7 +95,7 @@ class Andi(Operation):
 
 @irdl_op_definition
 class Bitcast(Operation):
-    name = "bitcast"
+    name = "arith.bitcast"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -103,7 +103,7 @@ class Bitcast(Operation):
 
 @irdl_op_definition
 class Ceildivsi(Operation):
-    name = "ceildivsi"
+    name = "arith.ceildivsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -112,7 +112,7 @@ class Ceildivsi(Operation):
 
 @irdl_op_definition
 class Ceildivui(Operation):
-    name = "ceildivui"
+    name = "arith.ceildivui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -121,7 +121,7 @@ class Ceildivui(Operation):
 
 @irdl_op_definition
 class Cmpf(Operation):
-    name = "cmpf"
+    name = "arith.cmpf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -130,7 +130,7 @@ class Cmpf(Operation):
 
 @irdl_op_definition
 class Cmpi(Operation):
-    name = "cmpi"
+    name = "arith.cmpi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -139,14 +139,14 @@ class Cmpi(Operation):
 
 @irdl_op_definition
 class Constant(Operation):
-    name = "constant"
+    name = "arith.constant"
     result = ResultDef(AnyAttr())
     regs = VarRegionDef()
 
 
 @irdl_op_definition
 class Divf(Operation):
-    name = "divf"
+    name = "arith.divf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -155,7 +155,7 @@ class Divf(Operation):
 
 @irdl_op_definition
 class Divsi(Operation):
-    name = "divsi"
+    name = "arith.divsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -164,7 +164,7 @@ class Divsi(Operation):
 
 @irdl_op_definition
 class Divui(Operation):
-    name = "divui"
+    name = "arith.divui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -173,7 +173,7 @@ class Divui(Operation):
 
 @irdl_op_definition
 class Extf(Operation):
-    name = "extf"
+    name = "arith.extf"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -181,7 +181,7 @@ class Extf(Operation):
 
 @irdl_op_definition
 class Extsi(Operation):
-    name = "extsi"
+    name = "arith.extsi"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -189,7 +189,7 @@ class Extsi(Operation):
 
 @irdl_op_definition
 class Extui(Operation):
-    name = "extui"
+    name = "arith.extui"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -197,7 +197,7 @@ class Extui(Operation):
 
 @irdl_op_definition
 class Fptosi(Operation):
-    name = "fptosi"
+    name = "arith.fptosi"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -205,7 +205,7 @@ class Fptosi(Operation):
 
 @irdl_op_definition
 class Fptoui(Operation):
-    name = "fptoui"
+    name = "arith.fptoui"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -213,7 +213,7 @@ class Fptoui(Operation):
 
 @irdl_op_definition
 class Floordivsi(Operation):
-    name = "floordivsi"
+    name = "arith.floordivsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -222,7 +222,7 @@ class Floordivsi(Operation):
 
 @irdl_op_definition
 class IndexCast(Operation):
-    name = "index_cast"
+    name = "arith.index_cast"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -230,7 +230,7 @@ class IndexCast(Operation):
 
 @irdl_op_definition
 class IndexCastui(Operation):
-    name = "index_castui"
+    name = "arith.index_castui"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -238,7 +238,7 @@ class IndexCastui(Operation):
 
 @irdl_op_definition
 class Maxf(Operation):
-    name = "maxf"
+    name = "arith.maxf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -247,7 +247,7 @@ class Maxf(Operation):
 
 @irdl_op_definition
 class Maxsi(Operation):
-    name = "maxsi"
+    name = "arith.maxsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -256,7 +256,7 @@ class Maxsi(Operation):
 
 @irdl_op_definition
 class Maxui(Operation):
-    name = "maxui"
+    name = "arith.maxui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -265,7 +265,7 @@ class Maxui(Operation):
 
 @irdl_op_definition
 class Minf(Operation):
-    name = "minf"
+    name = "arith.minf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -274,7 +274,7 @@ class Minf(Operation):
 
 @irdl_op_definition
 class Minsi(Operation):
-    name = "minsi"
+    name = "arith.minsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -283,7 +283,7 @@ class Minsi(Operation):
 
 @irdl_op_definition
 class Minui(Operation):
-    name = "minui"
+    name = "arith.minui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -292,7 +292,7 @@ class Minui(Operation):
 
 @irdl_op_definition
 class Mulf(Operation):
-    name = "mulf"
+    name = "arith.mulf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -301,7 +301,7 @@ class Mulf(Operation):
 
 @irdl_op_definition
 class Muli(Operation):
-    name = "muli"
+    name = "arith.muli"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -310,7 +310,7 @@ class Muli(Operation):
 
 @irdl_op_definition
 class Negf(Operation):
-    name = "negf"
+    name = "arith.negf"
     operand = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -318,7 +318,7 @@ class Negf(Operation):
 
 @irdl_op_definition
 class Ori(Operation):
-    name = "ori"
+    name = "arith.ori"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -327,7 +327,7 @@ class Ori(Operation):
 
 @irdl_op_definition
 class Remf(Operation):
-    name = "remf"
+    name = "arith.remf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -336,7 +336,7 @@ class Remf(Operation):
 
 @irdl_op_definition
 class Remsi(Operation):
-    name = "remsi"
+    name = "arith.remsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -345,7 +345,7 @@ class Remsi(Operation):
 
 @irdl_op_definition
 class Remui(Operation):
-    name = "remui"
+    name = "arith.remui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -354,7 +354,7 @@ class Remui(Operation):
 
 @irdl_op_definition
 class Sitofp(Operation):
-    name = "sitofp"
+    name = "arith.sitofp"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -362,7 +362,7 @@ class Sitofp(Operation):
 
 @irdl_op_definition
 class Shli(Operation):
-    name = "shli"
+    name = "arith.shli"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -371,7 +371,7 @@ class Shli(Operation):
 
 @irdl_op_definition
 class Shrsi(Operation):
-    name = "shrsi"
+    name = "arith.shrsi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -380,7 +380,7 @@ class Shrsi(Operation):
 
 @irdl_op_definition
 class Shrui(Operation):
-    name = "shrui"
+    name = "arith.shrui"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -389,7 +389,7 @@ class Shrui(Operation):
 
 @irdl_op_definition
 class Subf(Operation):
-    name = "subf"
+    name = "arith.subf"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -398,7 +398,7 @@ class Subf(Operation):
 
 @irdl_op_definition
 class Subi(Operation):
-    name = "subi"
+    name = "arith.subi"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -407,7 +407,7 @@ class Subi(Operation):
 
 @irdl_op_definition
 class Truncf(Operation):
-    name = "truncf"
+    name = "arith.truncf"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -415,7 +415,7 @@ class Truncf(Operation):
 
 @irdl_op_definition
 class Trunci(Operation):
-    name = "trunci"
+    name = "arith.trunci"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -423,7 +423,7 @@ class Trunci(Operation):
 
 @irdl_op_definition
 class Uitofp(Operation):
-    name = "uitofp"
+    name = "arith.uitofp"
     _in = OperandDef(AnyAttr())
     out = ResultDef(AnyAttr())
     regs = VarRegionDef()
@@ -431,7 +431,7 @@ class Uitofp(Operation):
 
 @irdl_op_definition
 class Xori(Operation):
-    name = "xori"
+    name = "arith.xori"
     lhs = OperandDef(AnyAttr())
     rhs = OperandDef(AnyAttr())
     result = ResultDef(AnyAttr())
@@ -440,7 +440,7 @@ class Xori(Operation):
 
 @irdl_op_definition
 class Select(Operation):
-    name = "select"
+    name = "arith.select"
     condition = OperandDef(AnyAttr())
     true_value = OperandDef(AnyAttr())
     false_value = OperandDef(AnyAttr())
