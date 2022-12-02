@@ -44,6 +44,14 @@ class BitVectorValue(ParametrizedAttribute):
     value: ParameterDef[IntAttr]
     width: ParameterDef[IntAttr]
 
+    @builder
+    @staticmethod
+    def from_int_value(value: int, width: int = 32) -> BitVectorValue:
+        return BitVectorValue([IntAttr.build(value), IntAttr.build(width)])
+
+    def get_type(self) -> BitVectorType:
+        return BitVectorType.from_int(self.width.data)
+
     def verify(self) -> None:
         if not (0 <= self.value.data < 2**self.width.data):
             raise ValueError("BitVector value out of range")
@@ -69,6 +77,12 @@ class ConstantOp(Operation, SMTLibOp):
     name = "smt.bv.constant"
     value = AttributeDef(BitVectorValue)
     res = ResultDef(BitVectorType)
+
+    @staticmethod
+    def from_int_value(value: int, width: int) -> ConstantOp:
+        bv_value = BitVectorValue.from_int_value(value, width)
+        return ConstantOp.create(result_types=[bv_value.get_type()],
+                                 attributes={"value": bv_value})
 
     @classmethod
     def parse(cls, result_types: list[Attribute],
