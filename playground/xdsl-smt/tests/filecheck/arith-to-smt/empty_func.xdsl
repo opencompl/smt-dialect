@@ -1,0 +1,17 @@
+// RUN: xdsl-smt.py %s -p=arith_to_smt | filecheck %s
+// RUN: xdsl-smt.py %s -p=arith_to_smt -t=smt | z3 -in
+
+
+builtin.module() {
+  func.func() ["sym_name" = "test", "function_type" = !fun<[!i32], [!i32]>, "sym_visibility" = "private"] {
+  ^bb0(%x: !i32):
+    func.return(%x: !i32)
+  }
+}
+
+// CHECK:      builtin.module() {
+// CHECK-NEXT:   %{{.*}} : !fun<[!smt.utils.pair<!smt.bv.bv<32>, !smt.bool>], [!smt.utils.pair<!smt.bv.bv<32>, !smt.bool>]> = smt.define_fun() {
+// CHECK-NEXT:   ^{{.*}}(%{{.*}} : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>):
+// CHECK-NEXT:     smt.return(%1 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+// CHECK-NEXT:   }
+// CHECK-NEXT: }

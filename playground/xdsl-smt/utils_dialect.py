@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Generic, TypeVar
-from xdsl.ir import Attribute, MLContext, Operation, ParametrizedAttribute
-from xdsl.irdl import AttributeDef, OperandDef, ParameterDef, ResultDef, irdl_attr_definition, irdl_op_definition
+from typing import Generic, TypeAlias, TypeVar
+from xdsl.ir import (Attribute, MLContext, Operation, ParametrizedAttribute)
+from xdsl.irdl import (OperandDef, ParameterDef, ResultDef,
+                       irdl_attr_definition, irdl_op_definition, builder)
 
 from dialect import SMTLibOp, SMTLibSort, SimpleSMTLibOp
 
@@ -20,6 +23,11 @@ class PairType(Generic[_F, _S], ParametrizedAttribute, SMTLibSort):
         assert isinstance(self.first, SMTLibSort)
         assert isinstance(self.second, SMTLibSort)
         return f"(Pair {self.first.as_smtlib_str()} {self.second.as_smtlib_str()})"
+
+    @builder
+    @staticmethod
+    def from_params(first: _F, second: _S) -> PairType[_F, _S]:
+        return PairType([first, second])
 
 
 @irdl_op_definition

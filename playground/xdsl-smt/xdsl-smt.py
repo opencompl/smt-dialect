@@ -9,6 +9,7 @@ from bitvector_dialect import SMTBitVectorDialect
 from utils_dialect import SMTUtilsDialect
 from smt_conversion import print_to_smtlib
 from xdsl.dialects.builtin import Builtin
+from xdsl.dialects.func import Func
 from arith_dialect import Arith
 
 from arith_to_smt import arith_to_smt
@@ -19,6 +20,7 @@ class OptMain(xDSLOptMain):
     def register_all_dialects(self):
         Arith(self.ctx)
         Builtin(self.ctx)
+        Func(self.ctx)
         SMTDialect(self.ctx)
         SMTBitVectorDialect(self.ctx)
         SMTUtilsDialect(self.ctx)
