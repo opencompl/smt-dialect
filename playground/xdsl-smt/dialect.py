@@ -217,6 +217,10 @@ class ReturnOp(Operation):
     name = "smt.return"
     ret = OperandDef(Attribute)
 
+    @staticmethod
+    def from_ret_values(ret_values: list[Attribute]):
+        return ReturnOp.create(operands=ret_values)
+
     def verify_(self):
         if not isinstance(self.parent_op(), DefineFunOp):
             raise ValueError("ReturnOp must be nested inside a DefineFunOp")
