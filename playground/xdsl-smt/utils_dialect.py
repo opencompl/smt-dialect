@@ -32,7 +32,7 @@ class PairType(Generic[_F, _S], ParametrizedAttribute, SMTLibSort):
 
 
 @irdl_op_definition
-class PairOp(Operation, SMTLibOp):
+class PairOp(Operation, SimpleSMTLibOp):
     name = "smt.utils.pair"
 
     res = ResultDef(PairType)
@@ -45,7 +45,7 @@ class PairOp(Operation, SMTLibOp):
         return PairOp.create(result_types=[result_type],
                              operands=[first, second])
 
-    def as_smtlib_str(self) -> str:
+    def op_name(self) -> str:
         return "pair"
 
 
