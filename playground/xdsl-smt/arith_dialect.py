@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from xdsl.ir import Operation, MLContext
-from xdsl.irdl import (OperandDef, ResultDef, AnyAttr, VarRegionDef,
-                       irdl_op_definition)
+from xdsl.irdl import (AttributeDef, OperandDef, ResultDef, AnyAttr,
+                       VarRegionDef, irdl_op_definition)
 
 
 @dataclass
@@ -140,6 +140,7 @@ class Cmpi(Operation):
 @irdl_op_definition
 class Constant(Operation):
     name = "arith.constant"
+    value = AttributeDef(AnyAttr())
     result = ResultDef(AnyAttr())
     regs = VarRegionDef()
 
