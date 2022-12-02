@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Generic, TypeAlias, TypeVar
-from xdsl.ir import (Attribute, MLContext, Operation, ParametrizedAttribute)
+from xdsl.ir import (Attribute, MLContext, Operation, ParametrizedAttribute,
+                     SSAValue)
 from xdsl.irdl import (OperandDef, ParameterDef, ResultDef,
                        irdl_attr_definition, irdl_op_definition, builder)
 
@@ -31,12 +32,18 @@ class PairType(Generic[_F, _S], ParametrizedAttribute, SMTLibSort):
 
 
 @irdl_op_definition
-class ConstantPairOp(Operation, SMTLibOp):
-    name = "smt.utils.constant_pair"
+class PairOp(Operation, SMTLibOp):
+    name = "smt.utils.pair"
 
     res = ResultDef(PairType)
     first = OperandDef(Attribute)
     second = OperandDef(Attribute)
+
+    @staticmethod
+    def from_values(first: SSAValue, second: SSAValue) -> PairOp:
+        result_type = PairType.from_params(first.typ, second.typ)
+        return PairOp.create(result_types=[result_type],
+                             operands=[first, second])
 
     def as_smtlib_str(self) -> str:
         return "pair"
@@ -70,6 +77,6 @@ class SMTUtilsDialect:
 
     def __post_init__(self):
         self.ctx.register_attr(PairType)
-        self.ctx.register_op(ConstantPairOp)
+        self.ctx.register_op(PairOp)
         self.ctx.register_op(FirstOp)
         self.ctx.register_op(SecondOp)
