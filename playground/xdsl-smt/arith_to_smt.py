@@ -94,8 +94,9 @@ class FuncToSMTPattern(RewritePattern):
         ]
 
         # Create the function
-        smt_func = DefineFunOp.from_function_type(
-            FunctionType.from_lists(smt_func_operands_type, smt_func_res_type))
+        smt_func = DefineFunOp.from_function_type(FunctionType.from_lists(
+            smt_func_operands_type, smt_func_res_type),
+                                                  name=op.sym_name)
 
         # Map the new ssa values
         for i, arg in enumerate(smt_func.body.blocks[0].args):

@@ -10,7 +10,7 @@ builtin.module() {
 }
 
 // CHECK:      builtin.module() {
-// CHECK-NEXT:   %0 : !fun<[], [!smt.utils.pair<!smt.bool, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>>]> = smt.define_fun() {
+// CHECK-NEXT:   %0 : !fun<[], [!smt.utils.pair<!smt.bool, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>>]> = smt.define_fun() ["name" = "test"] {
 // CHECK-NEXT:     %1 : !smt.bool = smt.constant_bool false
 // CHECK-NEXT:     %2 : !smt.bv.bv<32> = smt.bv.constant !smt.bv.bv_val<3, 32>
 // CHECK-NEXT:     %3 : !smt.bool = smt.constant_bool false
