@@ -6,6 +6,5 @@ add_mlir_translation_library(MLIRToSMTTranslation
 
   LINK_LIBS PUBLIC
   MLIRIR
-  MLIRTranslation
   MLIRSMT
 )

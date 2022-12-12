@@ -12,5 +12,4 @@ add_mlir_dialect_library(MLIRSMT
 
   LINK_LIBS PUBLIC
   MLIRIR
-  MLIRStandard
   )
