@@ -31,17 +31,15 @@ def SMTStatement : NativeOpTrait<"SMTStatement">;
 
 
 // SMT operation, which corresponds to an smt2 statement.
-class SMT_Op<string mnemonic, list<OpTrait> traits = []> :
+class SMT_Op<string mnemonic, list<Trait> traits = []> :
   Op<SMT_Dialect, mnemonic,
     !listconcat(traits, [DeclareOpInterfaceMethods<SMTSerializableOpInterface>])> {
-  let parser = "return ::parse$cppClass(parser, result);";
-  let printer = "return ::print(p, *this);";
-  let verifier = "return ::verify(*this);";
+  let hasVerifier = 1;
 }
 
 // generic support operation (may not be lowerable to smt2)
 // could be used to track information etc.
-class SMT_SupportOp<string mnemonic, list<OpTrait> traits = []> :
+class SMT_SupportOp<string mnemonic, list<Trait> traits = []> :
   Op<SMT_Dialect, mnemonic, traits>;
 
 //===----------------------------------------------------------------------===//
@@ -65,7 +63,7 @@ def SMT_ForallOp : SMT_Op<"forall", [SingleBlockImplicitTerminator<"YieldOp">]> 
 
   let regions = (region SizedRegion<1>:$body);
   let results = (outs I1:$cond);
-  let verifier = ?;
+  let hasCustomAssemblyFormat = 1;
 
   let extraClassDeclaration = [{
     YieldOp getYield();
@@ -80,7 +78,6 @@ def SMT_YieldOp : SMT_SupportOp<"yield", [Terminator, ReturnLike, ParentOneOf<["
 
   let arguments = (ins Variadic<AnyType>:$params);
   let assemblyFormat = [{ $params attr-dict `:` type($params) }];
-  let verifier = ?;
 }
 
 // Statements
@@ -95,7 +92,6 @@ def SMT_AssertOp : SMT_Op<"assert", [SMTStatement]> {
   let arguments = (ins I1:$cond);
 
   let assemblyFormat = [{ $cond attr-dict }];
-  let verifier = ?;
 }
 
 def SMT_CheckSatOp : SMT_Op<"check_sat", [SMTStatement]> {
@@ -105,7 +101,6 @@ def SMT_CheckSatOp : SMT_Op<"check_sat", [SMTStatement]> {
   }];
 
   let assemblyFormat = [{ attr-dict }];
-  let verifier = ?;
 }
 
 def SMT_GetModelOp : SMT_Op<"get_model", [SMTStatement]> {
@@ -115,7 +110,6 @@ def SMT_GetModelOp : SMT_Op<"get_model", [SMTStatement]> {
   }];
 
   let assemblyFormat = [{ attr-dict }];
-  let verifier = ?;
 }
 
 #endif // SMT_OPS
