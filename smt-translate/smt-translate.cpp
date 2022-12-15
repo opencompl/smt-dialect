@@ -2,7 +2,7 @@
 
 #include "mlir/InitAllTranslations.h"
 #include "mlir/Support/LogicalResult.h"
-#include "mlir/Translation.h"
+#include "mlir/Tools/mlir-translate/MlirTranslateMain.h"
 
 #include "SMT/SMTOps.h"
 #include "Target/MLIRToSMT.h"

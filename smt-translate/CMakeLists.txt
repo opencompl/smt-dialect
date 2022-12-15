@@ -17,8 +17,6 @@ target_link_libraries(smt-translate
   MLIRIR
   MLIRParser
   MLIRPass
-  MLIRSPIRV
-  MLIRTranslation
   MLIRSupport
   MLIRSMT
   MLIRToSMTTranslation

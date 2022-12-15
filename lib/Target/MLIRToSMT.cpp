@@ -1,8 +1,11 @@
 // Translation from MLIR (SMT dialect) to SMTLib code.
 
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/Target/LLVMIR/Dialect/All.h"
 #include "mlir/Target/LLVMIR/Export.h"
+#include "mlir/Tools/mlir-translate/Translation.h"
 
 #include "SMT/SMTOps.h"
 #include "SMT/SMTSerializers.h"
@@ -15,15 +18,15 @@ namespace {
 
 //===== MLIR To SMT Translation Module =======================================//
 class SMTTranslation {
-  FuncOp getSMTMain(ModuleOp module) {
-    auto funcOps = module.getRegion().getOps<FuncOp>();
-    FuncOp mainFunc = nullptr;
+  func::FuncOp getSMTMain(ModuleOp module) {
+    auto funcOps = module.getRegion().getOps<func::FuncOp>();
+    func::FuncOp mainFunc = nullptr;
     for (auto func : funcOps) {
       if (func->hasAttr("smt_main")) {
         if (mainFunc) {
           func->emitWarning(
               "[mlir-to-smt] Ignoring redefinition of `smt_main` function " +
-              func.sym_name());
+              func.getSymName());
         } else {
           mainFunc = func;
         }
@@ -39,7 +42,7 @@ class SMTTranslation {
 public:
   SMTTranslation(raw_ostream &output) : output(output) {}
   LogicalResult translateToSMT(ModuleOp module) {
-    FuncOp mainFunc;
+    func::FuncOp mainFunc;
     if (!(mainFunc = getSMTMain(module)))
       return failure();
     SMTContext smtContext(module, output, *module->getContext());
@@ -65,13 +68,13 @@ namespace mlir {
 void registerMLIRToSMTTranslation(
     std::function<void(DialectRegistry &)> registrationCallback) {
   TranslateFromMLIRRegistration registration(
-      "mlir-to-smt",
+      "mlir-to-smt", "Translate to an SMTLib script",
       [](ModuleOp module, raw_ostream &output) {
         SMTTranslation translation(output);
         return translation.translateToSMT(module);
       },
       [&](DialectRegistry &registry) {
-        registry.insert<StandardOpsDialect, smt::SMTDialect>();
+        registry.insert<func::FuncDialect, smt::SMTDialect>();
         registrationCallback(registry);
       });
 }

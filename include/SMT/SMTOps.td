@@ -34,7 +34,6 @@ def SMTStatement : NativeOpTrait<"SMTStatement">;
 class SMT_Op<string mnemonic, list<Trait> traits = []> :
   Op<SMT_Dialect, mnemonic,
     !listconcat(traits, [DeclareOpInterfaceMethods<SMTSerializableOpInterface>])> {
-  let hasVerifier = 1;
 }
 
 // generic support operation (may not be lowerable to smt2)

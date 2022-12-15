@@ -11,33 +11,16 @@
 using namespace mlir;
 using namespace smt;
 
-namespace {
-static LogicalResult parseForallOp(OpAsmParser &parser,
-                                   OperationState &result) {
+ParseResult ForallOp::parse(OpAsmParser &parser, OperationState &result) {
   // parse the region argument list (i.e. the forall variables)
-  if (failed(parser.parseLParen()))
-    return failure();
-  SmallVector<OpAsmParser::OperandType> args;
-  SmallVector<Type> argTypes;
-  bool first = true;
-  while (true) {
-    if (!first && failed(parser.parseOptionalComma()))
-      break;
-    first = false;
-
-    OpAsmParser::OperandType arg;
-    Type ty;
-    if (failed(parser.parseRegionArgument(arg)) ||
-        failed(parser.parseColonType(ty)))
-      return failure();
-    args.push_back(arg);
-    argTypes.push_back(ty);
-  }
-  if (failed(parser.parseRParen()))
+  SmallVector<OpAsmParser::Argument> args;
+  if (failed(parser.parseArgumentList(args,
+                                      /*delimiter=*/AsmParser::Delimiter::Paren,
+                                      /*allowAttrs=*/true)))
     return failure();
 
   Region *body = result.addRegion();
-  if (failed(parser.parseRegion(*body, args, argTypes)))
+  if (failed(parser.parseRegion(*body, args)))
     return failure();
 
   result.addTypes({parser.getBuilder().getI1Type()});
@@ -45,24 +28,23 @@ static LogicalResult parseForallOp(OpAsmParser &parser,
   return success();
 }
 
-static void print(OpAsmPrinter &printer, ForallOp op) {
+void ForallOp::print(OpAsmPrinter &printer) {
   printer << "(";
   llvm::interleaveComma(
-      op.body().getArguments(), printer,
+      getBody().getArguments(), printer,
       [&](BlockArgument v) { printer.printRegionArgument(v); });
   printer << ") ";
-  printer.printOptionalAttrDict(op->getAttrs());
-  printer.printRegion(op.body(),
+  // Get the attribute dictionary
+  printer.printOptionalAttrDict(getOperation()->getAttrs());
+  printer.printRegion(getBody(),
                       /*printEntryBlockArgs=*/false);
 }
-
-} // namespace
 
 #define GET_OP_CLASSES
 #include "SMT/SMTOps.cpp.inc"
 
 YieldOp ForallOp::getYield() {
-  return cast<YieldOp>(body().getBlocks().front().getTerminator());
+  return cast<YieldOp>(getBody().getBlocks().front().getTerminator());
 }
 
 //=== Serialize Expression Interface Methods =================================//
@@ -72,7 +54,7 @@ LogicalResult ForallOp::serializeExpression(llvm::raw_ostream &os,
   os << "(forall (";
 
   bool first = true;
-  for (auto arg : body().getArguments()) {
+  for (auto arg : getBody().getArguments()) {
     if (!first)
       os << " ";
     first = false;
@@ -91,7 +73,7 @@ LogicalResult ForallOp::serializeExpression(llvm::raw_ostream &os,
 LogicalResult AssertOp::serializeExpression(llvm::raw_ostream &os,
                                             smt::SMTContext &ctx) {
   os << "(assert ";
-  if (failed(ctx.serializeExpression(cond(), os)))
+  if (failed(ctx.serializeExpression(getCond(), os)))
     return failure();
   os << ")";
   return success();

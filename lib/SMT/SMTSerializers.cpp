@@ -1,5 +1,8 @@
-#include "SMT/SMTSerializers.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+
 #include "SMT/SMTOps.h"
+#include "SMT/SMTSerializers.h"
 
 using namespace mlir;
 using namespace smt;
@@ -18,11 +21,11 @@ namespace {
 //                                   SMTContext &ctx);
 // * Write the serialized expression to `os`.
 
-LogicalResult serializeExpression(ConstantIntOp op, llvm::raw_ostream &os,
-                                  SMTContext &ctx) {
+LogicalResult serializeExpression(arith::ConstantIntOp op,
+                                  llvm::raw_ostream &os, SMTContext &ctx) {
   IntegerType intType = op.getType().cast<IntegerType>();
   unsigned width = intType.getWidth();
-  int64_t value = op.getValue();
+  int64_t value = op.value();
   if (width == 1) { // Boolean value
     os << (value ? "true" : "false");
     return success();
@@ -38,38 +41,38 @@ LogicalResult serializeExpression(ConstantIntOp op, llvm::raw_ostream &os,
   return success();
 }
 
-LogicalResult serializeExpression(CmpIOp op, llvm::raw_ostream &os,
+LogicalResult serializeExpression(arith::CmpIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
   switch (op.getPredicate()) {
-  case CmpIPredicate::eq:
+  case arith::CmpIPredicate::eq:
     os << "(= ";
     break;
-  case CmpIPredicate::ne:
+  case arith::CmpIPredicate::ne:
     os << "(not (= ";
     break;
-  case CmpIPredicate::sge:
+  case arith::CmpIPredicate::sge:
     os << "(>= ";
     break;
-  case CmpIPredicate::sgt:
+  case arith::CmpIPredicate::sgt:
     os << "(> ";
     break;
-  case CmpIPredicate::sle:
+  case arith::CmpIPredicate::sle:
     os << "(<= ";
     break;
-  case CmpIPredicate::slt:
+  case arith::CmpIPredicate::slt:
     os << "(< ";
     break;
   default:
     op->emitError("[mlir-to-smt] Unsigned comparisons not supported (because I "
                   "haven't yet figured out how to compare bitvectors).");
   }
-  if (failed(ctx.serializeExpression(op.lhs(), os)))
+  if (failed(ctx.serializeExpression(op.getLhs(), os)))
     return failure();
   os << " ";
-  if (failed(ctx.serializeExpression(op.rhs(), os)))
+  if (failed(ctx.serializeExpression(op.getRhs(), os)))
     return failure();
   os << ")";
-  if (op.getPredicate() == CmpIPredicate::ne)
+  if (op.getPredicate() == arith::CmpIPredicate::ne)
     os << ")";
   return success();
 }
@@ -78,22 +81,23 @@ template <typename Op>
 LogicalResult serializeBinOp(const char *opSym, Op op, llvm::raw_ostream &os,
                              SMTContext &ctx) {
   os << "(" << opSym << " ";
-  if (failed(ctx.serializeExpression(op.lhs(), os)))
+  if (failed(ctx.serializeExpression(op.getLhs(), os)))
     return failure();
   os << " ";
-  if (failed(ctx.serializeExpression(op.rhs(), os)))
+  if (failed(ctx.serializeExpression(op.getRhs(), os)))
     return failure();
   os << ")";
   return success();
 }
 
-LogicalResult serializeExpression(AddIOp op, llvm::raw_ostream &os,
+LogicalResult serializeExpression(arith::AddIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  return serializeBinOp<AddIOp>("+", op, os, ctx);
+  return serializeBinOp<arith::AddIOp>("+", op, os, ctx);
 }
-LogicalResult serializeExpression(MulIOp op, llvm::raw_ostream &os,
+
+LogicalResult serializeExpression(arith::MulIOp op, llvm::raw_ostream &os,
                                   SMTContext &ctx) {
-  return serializeBinOp<MulIOp>("*", op, os, ctx);
+  return serializeBinOp<arith::MulIOp>("*", op, os, ctx);
 }
 
 //==== Expression Serializer Execution =======================================//
@@ -159,9 +163,9 @@ LogicalResult SMTContext::addFunc(StringRef funcName, FunctionType funcType,
 }
 
 LogicalResult SMTContext::addMLIRFunction(StringRef funcName) {
-  if (FuncOp func = dyn_cast<FuncOp>(module.lookupSymbol(funcName))) {
+  if (auto func = dyn_cast<func::FuncOp>(module.lookupSymbol(funcName))) {
     // found the function declaration in the module, so add that.
-    if (func.getType().getNumResults() != 1) {
+    if (func.getFunctionType().getNumResults() != 1) {
       return func.emitError("[mlir-to-smt] only functions with a single return "
                             "value are supported.");
     }
@@ -179,12 +183,13 @@ LogicalResult SMTContext::addMLIRFunction(StringRef funcName) {
 
       // TODO: serialize top-down, using `let` and `if` to handle branching
       if (failed(serializeExpression(
-              cast<ReturnOp>(blocks.front().getTerminator()).getOperand(0),
+              cast<func::ReturnOp>(blocks.front().getTerminator())
+                  .getOperand(0),
               os)))
         return failure();
     }
 
-    return addFunc(funcName, func.getType(), body);
+    return addFunc(funcName, func.getFunctionType(), body);
   }
 
   return failure();
@@ -221,7 +226,7 @@ LogicalResult SMTContext::serializeExpression(Value value,
   }
 
   // handle function calls separately.
-  if (auto callOp = dyn_cast<CallOp>(parentOp)) {
+  if (auto callOp = dyn_cast<func::CallOp>(parentOp)) {
     if (failed(this->addMLIRFunction(callOp.getCallee())))
       return failure();
     os << "(" << callOp.getCallee() << " ";
@@ -234,10 +239,10 @@ LogicalResult SMTContext::serializeExpression(Value value,
   // Run custom serializers
   return ::serializeExpression<
       // clang-format off
-      ConstantIntOp,
-      CmpIOp,
-      AddIOp,
-      MulIOp
+      arith::ConstantIntOp,
+      arith::CmpIOp,
+      arith::AddIOp,
+      arith::MulIOp
       // clang-format on
       >(parentOp, os, *this);
 }
