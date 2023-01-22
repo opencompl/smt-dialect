@@ -30,3 +30,36 @@ add_subdirectory(smt-dialect)
 ## License
 
 This dialect template is made available under the Apache License 2.0 with LLVM Exceptions. See the `LICENSE.txt` file for more details.
+
+
+## Running the xdsl-smt project
+
+Cd to the right folder
+
+```
+cd playground/xdsl-smt
+```
+
+Create a python environment
+
+```
+python -m venv venv
+```
+
+Checkout the environment
+
+```
+source venv/bin/activate
+```
+
+Install the requirements
+
+```
+pip install -r requirements.txt
+```
+
+Run xdsl-opt on an example
+
+```
+python xdsl-smt.py my_file -p=pass1,pass2 -t smt
+```
