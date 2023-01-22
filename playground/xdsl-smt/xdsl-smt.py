@@ -3,6 +3,7 @@
 import argparse
 from xdsl.xdsl_opt_main import xDSLOptMain
 from bitvector_dialect import SMTBitVectorDialect
+from commute import commute_addi, commute_tv
 
 from dialect import SMTDialect
 from bitvector_dialect import SMTBitVectorDialect
@@ -28,6 +29,8 @@ class OptMain(xDSLOptMain):
     def register_all_passes(self):
         super().register_all_passes()
         self.available_passes["arith_to_smt"] = arith_to_smt
+        self.available_passes["commute_addi"] = commute_addi
+        self.available_passes["commute_tv"] = commute_tv
 
     def register_all_arguments(self, arg_parser: argparse.ArgumentParser):
         super().register_all_arguments(arg_parser)
