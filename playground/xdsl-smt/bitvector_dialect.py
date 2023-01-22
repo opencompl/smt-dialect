@@ -145,6 +145,14 @@ class OrOp(BinaryBVOp, SimpleSMTLibOp):
         return "bvor"
 
 
+@irdl_op_definition
+class SDivOp(BinaryBVOp, SimpleSMTLibOp):
+    name = "smt.bv.sdiv"
+
+    def op_name(self) -> str:
+        return "bvsdiv"
+
+
 @dataclass
 class SMTBitVectorDialect:
     ctx: MLContext
@@ -155,3 +163,4 @@ class SMTBitVectorDialect:
         self.ctx.register_op(ConstantOp)
         self.ctx.register_op(AddOp)
         self.ctx.register_op(OrOp)
+        self.ctx.register_op(SDivOp)
