@@ -1,0 +1,29 @@
+// RUN: xdsl-smt.py %s -p=arith_to_smt | filecheck %s
+// RUN: xdsl-smt.py %s -p=arith_to_smt -t=smt | z3 -in
+
+
+builtin.module() {
+  func.func() ["sym_name" = "test", "function_type" = !fun<[!i32, !i32], [!i32]>, "sym_visibility" = "private"] {
+    ^bb0(%a: !i32, %b: !i32):
+    %x : !i32 = arith.addi(%a: !i32, %b: !i32)
+    func.return(%x: !i32)
+  }
+}
+
+
+//CHECK: builtin.module() {
+//CHECK-NEXT:   %0 : !fun<[!smt.utils.pair<!smt.bv.bv<32>, !smt.bool>, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>], [!smt.utils.pair<!smt.bool, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>>]> = smt.define_fun() ["name" = "test"] {
+//CHECK-NEXT:   ^0(%1 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>, %2 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>):
+//CHECK-NEXT:     %3 : !smt.bool = smt.constant_bool false
+//CHECK-NEXT:     %4 : !smt.bool = smt.utils.second(%1 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+//CHECK-NEXT:     %5 : !smt.bool = smt.utils.second(%2 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+//CHECK-NEXT:     %6 : !smt.bool = smt.or %4, %5
+//CHECK-NEXT:     %7 : !smt.bv.bv<32> = smt.utils.first(%1 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+//CHECK-NEXT:     %8 : !smt.bv.bv<32> = smt.utils.first(%2 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+//CHECK-NEXT:     %9 : !smt.bv.bv<32> = smt.bv.add %7, %8
+//CHECK-NEXT:     %10 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool> = smt.utils.pair(%9 : !smt.bv.bv<32>, %6 : !smt.bool)
+//CHECK-NEXT:     %11 : !smt.utils.pair<!smt.bool, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>> = smt.utils.pair(%3 : !smt.bool, %10 : !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>)
+//CHECK-NEXT:     smt.return(%11 : !smt.utils.pair<!smt.bool, !smt.utils.pair<!smt.bv.bv<32>, !smt.bool>>)
+//CHECK-NEXT:   }
+//CHECK-NEXT: }
+

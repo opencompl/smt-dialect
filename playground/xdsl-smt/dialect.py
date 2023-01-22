@@ -308,6 +308,10 @@ class BinaryBoolOp(Operation):
         printer.print(", ")
         printer.print_ssa_value(self.rhs)
 
+    @classmethod
+    def get(cls: type[_OpT], lhs: SSAValue, rhs: SSAValue) -> _OpT:
+        return cls.build(result_types=[BoolType([])], operands=[lhs, rhs])
+
 
 class BinaryTOp(Operation):
     res = ResultDef(BoolType)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import abstractclassmethod
 
 from dataclasses import dataclass
 from typing import Generic, TypeAlias, TypeVar
@@ -56,6 +57,10 @@ class FirstOp(Operation, SimpleSMTLibOp):
     res = ResultDef(Attribute)
     pair = OperandDef(PairType)
 
+    @staticmethod
+    def from_value(pair: SSAValue) -> FirstOp:
+        return FirstOp.create(result_types=[pair.typ.first], operands=[pair])
+
     def op_name(self) -> str:
         return "first"
 
@@ -69,6 +74,10 @@ class SecondOp(Operation, SimpleSMTLibOp):
 
     def op_name(self) -> str:
         return "second"
+
+    @staticmethod
+    def from_value(pair: SSAValue) -> SecondOp:
+        return SecondOp.create(result_types=[pair.typ.second], operands=[pair])
 
 
 @dataclass

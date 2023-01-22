@@ -5,11 +5,11 @@ from xdsl.dialects.func import FuncOp, Return
 from xdsl.ir import (Attribute, MLContext, Operation, SSAValue, Block, Region)
 from xdsl.pattern_rewriter import (PatternRewriteWalker, PatternRewriter,
                                    RewritePattern, op_type_rewrite_pattern)
-from arith_dialect import Constant
+from arith_dialect import Addi, Constant
 
-from bitvector_dialect import BitVectorType, ConstantOp
-from dialect import BoolType, ConstantBoolOp, DefineFunOp, ReturnOp
-from utils_dialect import PairOp, PairType
+from bitvector_dialect import AddOp, BitVectorType, ConstantOp
+from dialect import BoolType, ConstantBoolOp, DefineFunOp, ReturnOp, OrOp
+from utils_dialect import FirstOp, PairOp, PairType, SecondOp
 import bitvector_dialect as bv_dialect
 
 
@@ -56,12 +56,29 @@ def convert_constant(op: Constant,
                                constant_value.typ.width.data)
 
 
+def convert_add(op: Addi, ssa_mapping: dict[SSAValue,
+                                            SSAValue]) -> list[Operation]:
+    poison_lhs_op = SecondOp.from_value(ssa_mapping[op.operands[0]])
+    poison_rhs_op = SecondOp.from_value(ssa_mapping[op.operands[1]])
+    poison = OrOp.get(poison_lhs_op.res, poison_rhs_op.res)
+
+    lhs_op = FirstOp.from_value(ssa_mapping[op.operands[0]])
+    rhs_op = FirstOp.from_value(ssa_mapping[op.operands[1]])
+    add = bv_dialect.AddOp.get(lhs_op.results[0], rhs_op.results[0])
+
+    res = PairOp.from_values(add.res, poison.res)
+    # TODO: check for overflow
+    return [poison_lhs_op, poison_rhs_op, poison, lhs_op, rhs_op, add, res]
+
+
 def convert_operation(op: Operation, ssa_mapping: dict[SSAValue, SSAValue],
                       ub_value: SSAValue) -> tuple[list[Operation], SSAValue]:
     if isinstance(op, Return):
         new_ops = convert_return(op, ssa_mapping, ub_value)
     elif isinstance(op, Constant):
         new_ops = convert_constant(op, ssa_mapping)
+    elif isinstance(op, Addi):
+        new_ops = convert_add(op, ssa_mapping)
     else:
         raise Exception("Cannot convert ", type(op), " operation")
     for index, res in enumerate(op.results):

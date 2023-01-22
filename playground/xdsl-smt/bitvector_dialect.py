@@ -120,6 +120,10 @@ class BinaryBVOp(Operation):
         printer.print(", ")
         printer.print_ssa_value(self.rhs)
 
+    @classmethod
+    def get(cls, lhs: SSAValue, rhs: SSAValue) -> BinaryBVOp:
+        return cls.create(result_types=[lhs.typ], operands=[lhs, rhs])
+
     def verify_(self):
         if not (self.res.typ == self.lhs.typ == self.rhs.typ):
             raise ValueError("Operands must have same type")
@@ -133,6 +137,14 @@ class AddOp(BinaryBVOp, SimpleSMTLibOp):
         return "bvadd"
 
 
+@irdl_op_definition
+class OrOp(BinaryBVOp, SimpleSMTLibOp):
+    name = "smt.bv.or"
+
+    def op_name(self) -> str:
+        return "bvor"
+
+
 @dataclass
 class SMTBitVectorDialect:
     ctx: MLContext
@@ -142,3 +154,4 @@ class SMTBitVectorDialect:
         self.ctx.register_attr(BitVectorValue)
         self.ctx.register_op(ConstantOp)
         self.ctx.register_op(AddOp)
+        self.ctx.register_op(OrOp)
