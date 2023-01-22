@@ -284,6 +284,22 @@ class CheckSatOp(Operation, SMTLibScriptOp):
         pass
 
 
+@irdl_op_definition
+class GetModelOp(Operation, SMTLibScriptOp):
+    name = "smt.get_model"
+
+    def print_expr_to_smtlib(self, stream: IOBase, ctx: SMTConversionCtx):
+        print("(get-model)", file=stream)
+
+    @classmethod
+    def parse(cls: type[GetModelOp], result_types: list[Attribute],
+              parser: Parser) -> GetModelOp:
+        return GetModelOp.create()
+
+    def print(self, printer: Printer):
+        pass
+
+
 # Core operations
 
 _OpT = TypeVar("_OpT", bound=Operation)
@@ -508,6 +524,7 @@ class SMTDialect:
         self.ctx.register_op(DeclareConstOp)
         self.ctx.register_op(AssertOp)
         self.ctx.register_op(CheckSatOp)
+        self.ctx.register_op(GetModelOp)
 
         # Core theory
         self.ctx.register_attr(BoolAttr)

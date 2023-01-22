@@ -6,7 +6,7 @@ from xdsl.rewriter import Rewriter
 from xdsl.pattern_rewriter import RewritePattern, PatternRewriter, PatternRewriteWalker
 
 from arith_to_smt import arith_to_smt
-from dialect import AssertOp, BoolType, CallOp, CheckSatOp, DeclareConstOp, DefineFunOp, EqOp, NotOp
+from dialect import AssertOp, BoolType, CallOp, CheckSatOp, DeclareConstOp, DefineFunOp, EqOp, GetModelOp, NotOp
 
 
 class CommuteAddiPattern(RewritePattern):
@@ -77,6 +77,8 @@ def commute_tv(ctx: MLContext, module: ModuleOp) -> None:
     assert_ = AssertOp.create(result_types=[], operands=[not_op.res])
     new_ops.append(assert_)
 
-    new_ops.append(CheckSatOp.create())
+    check_sat = CheckSatOp.create(result_types=[])
+    new_ops.append(check_sat)
+    new_ops.append(GetModelOp.create())
 
     module.body.blocks[0].add_ops(new_ops)
